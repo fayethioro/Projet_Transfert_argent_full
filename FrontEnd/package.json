@@ -4,12 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "lite-server",
+    "watch": "tsc ./src/index.ts --outDir dist  -w"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "lite-server": "^2.6.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.6"
   }
 }
