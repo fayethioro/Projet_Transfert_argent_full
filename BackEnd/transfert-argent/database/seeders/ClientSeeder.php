@@ -32,6 +32,12 @@ class ClientSeeder extends Seeder
                 "telephone" => "765830419",
                 "email" => "ndiayedioagl@gmail.com",
             ],
+            [
+                "prenom" => "Moussa",
+                "nom" => "Sagna",
+                "telephone" => "762646880",
+                "email" => "sagnamoussa@gmail.com",
+            ],
 
         ];
         Client::insert($clients);

@@ -18,8 +18,8 @@ return new class extends Migration
             $table->integer('montant');
             $table->string('code', 35)->nullable();
             $table->dateTime('date_transaction');
-            $table->foreignId('compte_expediteur_id')->constrained('comptes');
-            $table->foreignId('compte_destinataire_id')->constrained('comptes');
+            $table->foreignId('compte_expediteur_id')->nullable()->constrained('comptes');
+            $table->foreignId('compte_destinataire_id')->nullable()->constrained('comptes');
         });
     }
 
