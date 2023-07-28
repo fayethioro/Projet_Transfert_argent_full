@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string("nom" , 50);
             $table->string("telephone" , 20)->unique();
             $table->string("email")->unique();
-            $table->strung("photo")->nullable();
+            $table->string("photo")->nullable();
         });
     }
 

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string("numero_compte")->unique();
             $table->enum("fournisseur" , ["OM", "WV" , "WR" , "CB"]);
             $table->integer("solde")->default(0);
-            $table->foreignIdFor(Client::class)->constrained();
+            $table->foreignId('client_id')->constrained('clients');
 
         });
     }

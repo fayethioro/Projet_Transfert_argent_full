@@ -16,11 +16,10 @@ return new class extends Migration
             $table->timestamps();
             $table->enum('type_transaction',[ "DEPOT" , "RETRAIT" , "TRANSFERT"]);
             $table->integer('montant');
-            $table->string('code', 30)->nullable();
+            $table->string('code', 35)->nullable();
             $table->dateTime('date_transaction');
             $table->foreignId('compte_expediteur_id')->constrained('comptes');
             $table->foreignId('compte_destinataire_id')->constrained('comptes');
-            $table->timestamps();
         });
     }
 
