@@ -25,7 +25,7 @@ Route::apiresource('/clients' , ClientController::class)->only("index");
 
 Route::apiresource('/comptes' , CompteController::class)->only("index");
 
-Route::get('/transactions/depot' , [TransactionController::class , "moneyDeposit"]);
+Route::get('/transactions/depot' , [TransactionController::class , "traiterDepot"]);
 
 
 

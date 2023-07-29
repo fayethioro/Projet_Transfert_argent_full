@@ -11,37 +11,104 @@ use Illuminate\Http\Request;
 class TransactionController extends Controller
 {
 
-    /**
-     *
-     */
-    public function moneyDeposit(Request $request)
+     /**
+      * Méthode pour traiter le dépôt
+      */
+    public function traiterDepot(Request $request)
     {
-        $expediteurClient = Client::find($request->compte_expediteur_id);
+        $montant = $request->montant;
+        $compteExpediteurId = $request->compte_expediteur_id;
+        $compteDestinataireId = $request->compte_destinataire_id;
 
-        if ($expediteurClient) {
+        // Effectuer des vérifications (par exemple, montant > minimum, etc.)
 
-            $destinataireCompte = Compte::find($request->compte_destinataire_id);
-            
-            if ($destinataireCompte) {
-
-                $transaction = Transaction::create([
-                    "type_transcation" => $request->type_transaction,
-                    "montant" => $request->montant,
-                    "date_transaction" => $request->date_transaction,
-                    "compte_expediteur_id" => $request->compte_expediteur_id,
-                    "compte_destinataire_id" => $request->compte_destinataire_id
-                ]);
-
-                $destinataireCompte->solde += $request->montant;
-                $destinataireCompte->save();
-
-                return   [
-                    "transaction" => $transaction,
-                    "destinataire" => $destinataireCompte
-                ];
-            }
-            return "ce numero n'a pas de compte";
+        if ($this->clientPossedeCompte($compteExpediteurId)) {
+            return $this->traiterDepotExpediteurAvecCompte($compteExpediteurId, $compteDestinataireId, $montant);
+        } else {
+            return $this->traiterDepotExpediteurSansCompte($compteExpediteurId, $compteDestinataireId, $montant);
         }
-        return "vous ne pouvez pas faire de depot";
     }
+    /**
+     * verifie si l'expediteur a un compte
+     */
+
+    private function clientPossedeCompte($compteClientId)
+    {
+        return Compte::find($compteClientId) !== null;
+    }
+    /**
+     * verifie si le numero  client est valide
+     */
+    private function estClient($clientId)
+    {
+        return Client::find($clientId) !== null;
+    }
+    /**
+     *  traiter destinataire possedant un compte => client
+     */
+    private function traiterDepotExpediteurAvecCompte($compteExpediteurId, $compteDestinataireId, $montant)
+    {
+
+        $destinataireCompte = Compte::find($compteDestinataireId);
+
+        if ($destinataireCompte) {
+
+            $transaction = new Transaction([
+                'type_transaction' => 'DEPOT',
+                'montant' => $montant,
+                'date_transaction' => now(),
+                'compte_expediteur_id' => $compteExpediteurId,
+                'compte_destinataire_id' => $compteDestinataireId,
+            ]);
+            $transaction->save();
+
+            $destinataireCompte->solde += $montant;
+            $destinataireCompte->save();
+            return [
+                "message" => "Le dépôt a été effectué avec succès.",
+                "destinataire" => $destinataireCompte,
+                "transaction" => $transaction
+            ];
+        }
+
+        return "Le destinataire n'a pas de compte. Le dépôt ne peut pas être effectué.";
+    }
+
+    /**
+     * Summary of traiterDepotExpediteurSansCompte
+     * @param mixed $compteExpediteurId
+     * @param mixed $compteDestinataireId
+     * @param mixed $montant
+     * @return string
+     * expediteur n'a pas compte
+     */
+    private function traiterDepotExpediteurSansCompte($compteExpediteurId, $compteDestinataireId, $montant)
+    {
+       if ($this->estClient($compteExpediteurId)) {
+
+        $destinataireCompte = Compte::find($compteDestinataireId);
+
+        $transaction = new Transaction([
+            'type_transaction' => 'DEPOT',
+            'montant' => $montant,
+            'date_transaction' => now()
+        ]);
+
+        if ($compteExpediteurId) {
+            $transaction->compte_expediteur_id = null;
+        }
+        $transaction->save();
+
+        $destinataireCompte->solde += $montant;
+            $destinataireCompte->save();
+            return [
+                "message" => "Le dépôt a été effectué avec succès.",
+                "destinataire" => $destinataireCompte,
+                "transaction" => $transaction
+            ];
+
+       }
+       return "Le numero n'est pas valide. Le dépôt ne peut pas être effectué.";
+    }
+
 }
