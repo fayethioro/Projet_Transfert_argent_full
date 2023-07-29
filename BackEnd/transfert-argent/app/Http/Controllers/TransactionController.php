@@ -5,36 +5,65 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\Compte;
 use App\Models\Transaction;
-use Carbon\Traits\Date;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
 
-     /**
-      * Méthode pour traiter le dépôt
-      */
-    public function traiterDepot(Request $request)
+    /**
+     * Méthode pour traiter le dépôt
+     */
+    public function traiterTransfertArgent(Request $request)
     {
+        $typeTransfert = $request->type_transaction;
         $montant = $request->montant;
-        $compteExpediteurId = $request->compte_expediteur_id;
-        $compteDestinataireId = $request->compte_destinataire_id;
+        $numeroExpediteur = $request->expediteur;
+        $numeroDestinataire = $request->destinataire;
 
-        // Effectuer des vérifications (par exemple, montant > minimum, etc.)
+        $destinataireCompte = Compte::where('numero_client', $numeroDestinataire)->get()->first();
 
-        if ($this->clientPossedeCompte($compteExpediteurId)) {
-            return $this->traiterDepotExpediteurAvecCompte($compteExpediteurId, $compteDestinataireId, $montant);
-        } else {
-            return $this->traiterDepotExpediteurSansCompte($compteExpediteurId, $compteDestinataireId, $montant);
+        if ($destinataireCompte) {
+            $validationMontant = $this->validerMontantDepot($destinataireCompte, $montant);
+            if ($validationMontant) {
+                return $validationMontant;
+            }
+        }
+        if ($montant < 1000) {
+            return "Le montant de depot pour Wari doit est etre comprise entre 1000 et 1.000.000";
+        }
+        if ($typeTransfert === 1) {
+            return $this->traiterDepot($typeTransfert, $numeroExpediteur, $numeroDestinataire, $montant);
+        }
+        if ($typeTransfert === 3) {
+
+            return $this->traiterTransfertPermanent($typeTransfert, $numeroExpediteur, $numeroDestinataire, $montant);
         }
     }
     /**
-     * verifie si l'expediteur a un compte
+     * valider Montant
      */
-
-    private function clientPossedeCompte($compteClientId)
+    private function validerMontantDepot($destinataireCompte, $montant)
     {
-        return Compte::find($compteClientId) !== null;
+        if ((($destinataireCompte->fournisseur === "OM") || ($destinataireCompte->fournisseur === "WV"))
+            && ($montant < 500 || $montant > 1000000)
+        ) {
+            return "Le montant de dépôt pour Orange Money ou Wave doit être compris entre 500 et 1.000.000";
+        }
+        if ($destinataireCompte->fournisseur === "WR" && ($montant < 1000 || $montant > 1000000)) {
+            return "Le montant de dépôt pour Wari doit être compris entre 1000 et 1.000.000";
+        }
+        if ($destinataireCompte->fournisseur === "CB" && $montant < 10000) {
+            return "Le montant de dépôt pour les comptes Bancaire doit être supérieur à 10000";
+        }
+
+        return null; // Aucune erreur de montant de dépôt
+    }
+    /**
+     * verifie si le client a un compte
+     */
+    private function clientPossedeCompte($numeroClient)
+    {
+        return Compte::where('numero_client', $numeroClient)->get()->first() !== null;
     }
     /**
      * verifie si le numero  client est valide
@@ -44,71 +73,124 @@ class TransactionController extends Controller
         return Client::find($clientId) !== null;
     }
     /**
-     *  traiter destinataire possedant un compte => client
+     * generer code
      */
-    private function traiterDepotExpediteurAvecCompte($compteExpediteurId, $compteDestinataireId, $montant)
+    public  function  genererCode($nombreChiffres)
     {
+        $min = intval('1' . str_repeat('0', $nombreChiffres - 1));
+        $max = intval(str_repeat('9', $nombreChiffres));
+        $nombreAleatoire = mt_rand($min, $max);
+        return (string)$nombreAleatoire;
+    }
+    /**
+     * traiter depot
+     */
+    private function traiterDepot($typeTransfert, $numeroExpediteur, $numeroDestinataire, $montant)
+    {
+        if ($this->estClient($numeroExpediteur)) {
 
-        $destinataireCompte = Compte::find($compteDestinataireId);
+            $destinataireCompte = Compte::where('numero_client', $numeroDestinataire)->get()->first();
 
-        if ($destinataireCompte) {
-
-            $transaction = new Transaction([
-                'type_transaction' => 'DEPOT',
+            $transactionData = [
+                'type_transaction' => $typeTransfert,
                 'montant' => $montant,
                 'date_transaction' => now(),
-                'compte_expediteur_id' => $compteExpediteurId,
-                'compte_destinataire_id' => $compteDestinataireId,
-            ]);
-            $transaction->save();
-
-            $destinataireCompte->solde += $montant;
-            $destinataireCompte->save();
-            return [
-                "message" => "Le dépôt a été effectué avec succès.",
-                "destinataire" => $destinataireCompte,
-                "transaction" => $transaction
+                'numero_expediteur' => $numeroExpediteur,
+                'numero_destinataire' => $numeroDestinataire,
             ];
+            if ($this->clientPossedeCompte($numeroDestinataire)) {
+                $transaction = new Transaction($transactionData);
+                $transaction->save();
+
+                $destinataireCompte->solde += $montant;
+                $destinataireCompte->save();
+
+                return [
+                    "message" => "Le dépôt a été effectué avec succès.",
+                    "destinataire" => $destinataireCompte,
+                    "transaction" => $transaction
+                ];
+            }
+            if ($this->estClient($numeroDestinataire)) {
+                $transactionData['code'] = $this->genererCode(15);
+                $transaction = new Transaction($transactionData);
+                $transaction->save();
+
+                return [
+                    "message" => "Le dépôt a été effectué avec succès.",
+                    "destinataire" => "le destinataire n'a pas de compte => fournisseur est wari",
+                    "transaction" => $transaction
+                ];
+            }
+            return "Le numero du destinataire  n'est pas valide. Le dépôt ne peut pas être effectué.";
+        }
+        return "Le numero de l'expediteur  ou n'est pas valide. Le dépôt ne peut pas être effectué.";
+    }
+    /**
+     * Traiter les frais pour chaque fournisseur et le solde
+     */ private function traiterFraisEtSolde($expediteurCompte, $destinataireCompte, $montant)
+    {
+        // Calculer les frais en fonction du fournisseur
+        if ($destinataireCompte->fournisseur === "OM" || $destinataireCompte->fournisseur === "WV") {
+            $frais = $montant * 0.01;
+        } elseif ($destinataireCompte->fournisseur === "WR") {
+            $frais = $montant * 0.02;
+        } elseif ($destinataireCompte->fournisseur === "CB") {
+            $frais = $montant * 0.05;
+        } else {
+            return  "Fournisseur non reconnu.";
         }
 
-        return "Le destinataire n'a pas de compte. Le dépôt ne peut pas être effectué.";
+        // Vérifier si le solde est suffisant pour le montant et les frais
+        if ($expediteurCompte->solde < ($montant + $frais)) {
+            return  "Votre solde est insuffisant.";
+        }
+
+        // Mettre à jour le solde du compte expéditeur et du compte destinataire
+        $expediteurCompte->solde -= ($montant + $frais);
+        $expediteurCompte->save();
+        $destinataireCompte->solde += $montant;
+        $destinataireCompte->save();
+
+        return  $frais;
     }
 
     /**
-     * Summary of traiterDepotExpediteurSansCompte
-     * @param mixed $compteExpediteurId
-     * @param mixed $compteDestinataireId
-     * @param mixed $montant
-     * @return string
-     * expediteur n'a pas compte
+     * traiter transfert Permanent sans Code
      */
-    private function traiterDepotExpediteurSansCompte($compteExpediteurId, $compteDestinataireId, $montant)
+    private function traiterTransfertPermanent($typeTransfert, $numeroExpediteur, $numeroDestinataire, $montant)
     {
-       if ($this->estClient($compteExpediteurId)) {
+        $destinataireCompte = Compte::where('numero_client', $numeroDestinataire)->first();
+        $expediteurCompte = Compte::where('numero_client', $numeroExpediteur)->first();
 
-        $destinataireCompte = Compte::find($compteDestinataireId);
+        if ($this->clientPossedeCompte($numeroExpediteur) && $this->clientPossedeCompte($numeroDestinataire)) {
+            if ($destinataireCompte->fournisseur === $expediteurCompte->fournisseur) {
+                $transactionData = [
+                    'type_transaction' => $typeTransfert,
+                    'montant' => $montant,
+                    'date_transaction' => now(),
+                    'numero_expediteur' => $numeroExpediteur,
+                    'numero_destinataire' => $numeroDestinataire,
+                ];
+                $transaction = new Transaction($transactionData);
+                $transaction->save();
 
-        $transaction = new Transaction([
-            'type_transaction' => 'DEPOT',
-            'montant' => $montant,
-            'date_transaction' => now()
-        ]);
+                $result = $this->traiterFraisEtSolde($expediteurCompte, $destinataireCompte, $montant);
 
-        if ($compteExpediteurId) {
-            $transaction->compte_expediteur_id = null;
+                if ($result !== "Fournisseur non reconnu." && $result !== "Votre solde est insuffisant.") {
+                    return [
+                        "message" => "Le transfert a été effectué avec succès.",
+                        "expediteur" => $expediteurCompte,
+                        "destinataire" => $destinataireCompte,
+                        "transaction" => $transaction,
+                        "frais" => $result
+                    ];
+                }
+                    return $result;
+            }
+            return "Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB).";
         }
-        $transaction->save();
-
-        $destinataireCompte->solde += $montant;
-            $destinataireCompte->save();
-            return [
-                "message" => "Le dépôt a été effectué avec succès.",
-                "destinataire" => $destinataireCompte,
-                "transaction" => $transaction
-            ];
-
-       }
-       return "Le numero n'est pas valide. Le dépôt ne peut pas être effectué.";
+        return "Les deux clients doivent posséder un compte.";
     }
 
 }

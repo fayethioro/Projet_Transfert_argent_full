@@ -14,6 +14,7 @@ class Client extends Model
     [
         'id',
     ];
+    protected $primaryKey = 'numero';
 
     /**
      * The attributes that should be hidden for serialization.
@@ -27,5 +28,5 @@ class Client extends Model
         'updated_at',
     ];
 
-   
+
 }

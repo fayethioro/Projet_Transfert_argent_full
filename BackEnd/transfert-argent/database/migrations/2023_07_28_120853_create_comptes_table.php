@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('comptes', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
             $table->string("numero_compte")->unique();
             $table->enum("fournisseur" , ["OM", "WV" , "WR" , "CB"]);
             $table->integer("solde")->default(0);
-            $table->foreignId('client_id')->constrained('clients');
+            $table->string('numero_client')->nullable()->index();
+            $table->foreign('numero_client')->references('numero')->on('clients');
+            $table->timestamps();
 
         });
     }

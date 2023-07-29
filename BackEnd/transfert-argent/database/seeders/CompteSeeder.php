@@ -17,17 +17,27 @@ class CompteSeeder extends Seeder
             [
                 "numero_compte" => "OM_785830419",
                 "fournisseur" =>"OM",
-                "client_id" => 1
+                "numero_client" => "785830419"
+            ],
+            [
+                "numero_compte" => "OM_771234567",
+                "fournisseur" =>"OM",
+                "numero_client" => "771234567"
             ],
             [
                 "numero_compte" => "WV_771234523",
                 "fournisseur" =>"WV",
-                "client_id" => 2
+                "numero_client" => "771234523"
+            ],
+            [
+                "numero_compte" => "WR_782646880",
+                "fournisseur" =>"WR",
+                "numero_client" => "782646880"
             ],
             [
                 "numero_compte" => "CB_765830419",
                 "fournisseur" =>"CB",
-                "client_id" => 3
+                "numero_client" => "765830419"
             ]
 
         ];

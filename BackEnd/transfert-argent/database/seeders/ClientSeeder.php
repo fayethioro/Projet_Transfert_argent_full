@@ -15,28 +15,40 @@ class ClientSeeder extends Seeder
     {
         $clients = [
             [
+                "numero" => "785830419",
                 "prenom" => "Thioro",
                 "nom" => "Faye",
-                "telephone" => "785830419",
                 "email" => "fayethioro@gmail.com",
             ],
             [
+                "numero" => "771234523",
                 "prenom" => "Mar",
                 "nom" => "Ndiaye",
-                "telephone" => "771234523",
                 "email" => "ndiayemar@gmail.com",
             ],
             [
+                "numero" => "765830419",
                 "prenom" => "Diogal",
                 "nom" => "Ndiaye",
-                "telephone" => "765830419",
                 "email" => "ndiayedioagl@gmail.com",
             ],
             [
+                "numero" => "782646880",
+                "prenom" => "Lamine",
+                "nom" => "Gaye",
+                "email" => "gayelamine@gmail.com",
+            ],
+            [
+                "numero" => "762646880",
                 "prenom" => "Moussa",
                 "nom" => "Sagna",
-                "telephone" => "762646880",
                 "email" => "sagnamoussa@gmail.com",
+            ],
+            [
+                "numero" => "771234567",
+                "prenom" => "matar",
+                "nom" => "Ndiaye",
+                "email" => "ndiayematar@gmail.com",
             ],
 
         ];

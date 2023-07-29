@@ -34,11 +34,5 @@ class Transaction extends Model
     {
         return $this->belongsTo(Compte::class, 'compte_destinataire_id');
     }
-    public static function  genererCode($nombreChiffres)
-    {
-        $min = intval('1' . str_repeat('0', $nombreChiffres - 1));
-        $max = intval(str_repeat('9', $nombreChiffres));
-         $nombreAleatoire = mt_rand($min, $max);
-        return (string)$nombreAleatoire;
-    }
+   
 }
