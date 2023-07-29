@@ -22,6 +22,10 @@ class TransactionController extends Controller
 
         $destinataireCompte = Compte::where('numero_client', $numeroDestinataire)->get()->first();
 
+        if ($typeTransfert === 2) {
+
+            return $this->traiterRetrait($typeTransfert, $numeroExpediteur, $montant);
+        }
         if ($destinataireCompte) {
             $validationMontant = $this->validerMontantDepot($destinataireCompte, $montant);
             if ($validationMontant) {
@@ -37,6 +41,14 @@ class TransactionController extends Controller
         if ($typeTransfert === 3) {
 
             return $this->traiterTransfertPermanent($typeTransfert, $numeroExpediteur, $numeroDestinataire, $montant);
+        }
+        if ($typeTransfert === 4) {
+
+            return $this->traiterTransfertAvecCode($typeTransfert, $numeroExpediteur, $numeroDestinataire, $montant);
+        }
+        if ($typeTransfert === 5) {
+
+            return $this->traiterTransfertImmediat($typeTransfert, $numeroExpediteur, $numeroDestinataire, $montant);
         }
     }
     /**
@@ -126,11 +138,42 @@ class TransactionController extends Controller
         }
         return "Le numero de l'expediteur  ou n'est pas valide. Le dépôt ne peut pas être effectué.";
     }
+
+    private function traiterRetrait($typeTransfert, $numeroExpediteur, $montant)
+    {
+        $expediteurCompte = Compte::where('numero_client', $numeroExpediteur)->get()->first();
+
+        if ($expediteurCompte) {
+            if ($expediteurCompte->solde < $montant) {
+                return  "Votre solde est insuffisant. Vous ne pouwez pas faire de retrait";
+            }
+            $transactionData = [
+                'type_transaction' => $typeTransfert,
+                'montant' => $montant,
+                'date_transaction' => now(),
+                'numero_expediteur' => $numeroExpediteur,
+                'numero_destinataire' => null,
+            ];
+            $transaction = new Transaction($transactionData);
+            $transaction->save();
+
+            $expediteurCompte->solde -= $montant;
+            $expediteurCompte->save();
+
+            return [
+                "message" => "Le retrait a été effectué avec succès.",
+                "client" => $expediteurCompte,
+                "transaction" => $transaction
+            ];
+        }
+        return "le client doit avoir un compte";
+    }
     /**
      * Traiter les frais pour chaque fournisseur et le solde
-     */ private function traiterFraisEtSolde($expediteurCompte, $destinataireCompte, $montant)
+     */ private function traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant)
     {
-        // Calculer les frais en fonction du fournisseur
+        $destinataireCompte = Compte::where('numero_client', $numeroDestinataire)->first();
+
         if ($destinataireCompte->fournisseur === "OM" || $destinataireCompte->fournisseur === "WV") {
             $frais = $montant * 0.01;
         } elseif ($destinataireCompte->fournisseur === "WR") {
@@ -140,18 +183,12 @@ class TransactionController extends Controller
         } else {
             return  "Fournisseur non reconnu.";
         }
-
-        // Vérifier si le solde est suffisant pour le montant et les frais
         if ($expediteurCompte->solde < ($montant + $frais)) {
-            return  "Votre solde est insuffisant.";
+            return  "Votre solde est insuffisant. Vous ne pouvez faire ni de depot ni de transfert";
         }
 
-        // Mettre à jour le solde du compte expéditeur et du compte destinataire
         $expediteurCompte->solde -= ($montant + $frais);
         $expediteurCompte->save();
-        $destinataireCompte->solde += $montant;
-        $destinataireCompte->save();
-
         return  $frais;
     }
 
@@ -172,12 +209,14 @@ class TransactionController extends Controller
                     'numero_expediteur' => $numeroExpediteur,
                     'numero_destinataire' => $numeroDestinataire,
                 ];
-                $transaction = new Transaction($transactionData);
-                $transaction->save();
-
-                $result = $this->traiterFraisEtSolde($expediteurCompte, $destinataireCompte, $montant);
+                $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
 
                 if ($result !== "Fournisseur non reconnu." && $result !== "Votre solde est insuffisant.") {
+
+                    $transaction = new Transaction($transactionData);
+                    $transaction->save();
+                    $destinataireCompte->solde += $montant;
+                    $destinataireCompte->save();
                     return [
                         "message" => "Le transfert a été effectué avec succès.",
                         "expediteur" => $expediteurCompte,
@@ -186,11 +225,80 @@ class TransactionController extends Controller
                         "frais" => $result
                     ];
                 }
-                    return $result;
+                return $result;
             }
             return "Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB).";
         }
         return "Les deux clients doivent posséder un compte.";
     }
 
+    private function traiterTransfertAvecCode($typeTransfert, $numeroExpediteur, $numeroDestinataire, $montant)
+    {
+        $expediteurCompte = Compte::where('numero_client', $numeroExpediteur)->first();
+        if ($this->clientPossedeCompte($numeroExpediteur) && $this->estClient($numeroDestinataire)) {
+            $transactionData = [
+                'type_transaction' => $typeTransfert,
+                'montant' => $montant,
+                'date_transaction' => now(),
+                'numero_expediteur' => $numeroExpediteur,
+                'numero_destinataire' => $numeroDestinataire,
+                'code' => $this->genererCode(25)
+            ];
+
+            $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
+
+            if ($result !== "Fournisseur non reconnu." && $result !== "Votre solde est insuffisant.") {
+
+                $transaction = new Transaction($transactionData);
+                $transaction->save();
+                return [
+                    "message" => "Le transfert a été effectué avec succès.",
+                    "expediteur" => $expediteurCompte,
+                    "transaction" => $transaction,
+                    "frais" => $result
+                ];
+            }
+            return $result;
+        }
+        return "L'expediteur doit posséder un compte et le le numero du destinataire doit etre valide";
+    }
+
+
+    private function traiterTransfertImmediat($typeTransfert, $numeroExpediteur, $numeroDestinataire, $montant)
+    {
+        $destinataireCompte = Compte::where('numero_client', $numeroDestinataire)->first();
+        $expediteurCompte = Compte::where('numero_client', $numeroExpediteur)->first();
+
+        if ($this->clientPossedeCompte($numeroExpediteur) && $this->clientPossedeCompte($numeroDestinataire)) {
+            if ($destinataireCompte->fournisseur === $expediteurCompte->fournisseur) {
+                $transactionData = [
+                    'type_transaction' => $typeTransfert,
+                    'montant' => $montant,
+                    'date_transaction' => now(),
+                    'numero_expediteur' => $numeroExpediteur,
+                    'numero_destinataire' => $numeroDestinataire,
+                    'code' => $this->genererCode(30)
+                ];
+
+                $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
+
+                if ($result !== "Fournisseur non reconnu." && $result !== "Votre solde est insuffisant.") {
+                    $transaction = new Transaction($transactionData);
+                    $transaction->save();
+                    $destinataireCompte->solde += $montant;
+                    $destinataireCompte->save();
+                    return [
+                        "message" => "Le transfert a été effectué avec succès.",
+                        "expediteur" => $expediteurCompte,
+                        "destinataire" => $destinataireCompte,
+                        "transaction" => $transaction,
+                        "frais" => $result
+                    ];
+                }
+                return $result;
+            }
+            return "Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB).";
+        }
+        return "Les deux clients doivent posséder un compte.";
+    }
 }
