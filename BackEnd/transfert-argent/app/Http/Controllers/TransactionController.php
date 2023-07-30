@@ -13,6 +13,9 @@ class TransactionController extends Controller
     /**
      * Méthode pour traiter le dépôt
      */
+
+
+
     public function traiterTransfertArgent(Request $request)
     {
         $typeTransfert = $request->type_transaction;
@@ -83,6 +86,18 @@ class TransactionController extends Controller
     private function estClient($clientId)
     {
         return Client::find($clientId) !== null;
+    }
+    public function afficheNomComplet(Request $request)
+    {
+        $numeroClient = $request->numero;
+       if ($this->estClient($numeroClient)) {
+           $client = Client::where('numero', $numeroClient)->get()->first();
+           return [
+            "NomComplet" => "{$client->prenom} {$client->nom} "
+           ];
+       }
+       return ["error" =>"le numero n'existe pas"];
+
     }
     /**
      * generer code
