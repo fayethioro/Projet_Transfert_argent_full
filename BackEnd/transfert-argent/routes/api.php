@@ -27,6 +27,7 @@ Route::apiresource('/comptes' , CompteController::class)->only("index");
 
 Route::post('/transactions/depot' , [TransactionController::class , "traiterTransfertArgent"]);
 Route::get('/clients/nomComplet' , [TransactionController::class , "afficheNomComplet"]);
+Route::get('/clients/fournisseur' , [TransactionController::class , "nomFournisseur"]);
 
 
 

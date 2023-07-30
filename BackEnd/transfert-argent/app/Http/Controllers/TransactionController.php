@@ -97,6 +97,25 @@ class TransactionController extends Controller
            ];
        }
        return ["error" =>"le numero n'existe pas"];
+    }
+
+    public function nomFournisseur(Request $request)
+    {
+        $numeroClient = $request->numero;
+
+        $fournisseur = Compte::where('numero_client', $numeroClient)->get()->first();
+        if ($this->clientPossedeCompte($numeroClient)) {
+            return [
+                "fournisseur" =>$fournisseur->fournisseur
+            ];
+        }
+        if ($this->estClient($numeroClient)) {
+            return [
+                "fournisseur" =>"Wari"
+            ];
+        }
+        return ["error" =>"le numero n'existe pas"];
+
 
     }
     /**

@@ -82,6 +82,15 @@ span, button
     height: 90%;
 }
 
-/* .erreur{
-    display: none;
-} */
+.om{
+    background: orange;
+}
+.wv{
+    background : blue;
+}
+.wr{
+    background : green;
+}
+.cb{
+    background: yellow;
+}

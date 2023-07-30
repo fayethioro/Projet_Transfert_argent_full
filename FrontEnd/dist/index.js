@@ -34,7 +34,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var erreurExpediteur = document.querySelector('.erreur_expediteur');
+var formExpedCompte = document.getElementById('form_exped_compte');
+var formDestCompte = document.getElementById('form_dest_compte');
 // Fonction pour effectuer la requête AJAX et récupérer le nom complet
 function getNomComplet(numero) {
     return __awaiter(this, void 0, void 0, function () {
@@ -52,15 +53,84 @@ function getNomComplet(numero) {
         });
     });
 }
-function afficherNomComplet() {
+// Ajouter une fonction pour récupérer le fournisseur en utilisant l'API
+function getFournisseur(numero) {
     return __awaiter(this, void 0, void 0, function () {
-        var formExpedCompte, formExpediteur, numero, nomComplet, error_1;
+        var response, data;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, fetch("http://127.0.0.1:8000/transfert-api/clients/fournisseur?numero=".concat(numero))];
+                case 1:
+                    response = _a.sent();
+                    return [4 /*yield*/, response.json()];
+                case 2:
+                    data = _a.sent();
+                    return [2 /*return*/, data.fournisseur];
+            }
+        });
+    });
+}
+// Modifier la fonction handleInputEvent()
+function handleInputEvent() {
+    return __awaiter(this, void 0, void 0, function () {
+        var formExpedCompte, formExpediteur, transactionDiv, destinataireDiv, numero, nomComplet, fournisseur, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     formExpedCompte = document.getElementById('form_exped_compte');
                     formExpediteur = document.getElementById('form_expediteur');
+                    transactionDiv = document.querySelector('.transaction-div');
+                    destinataireDiv = document.querySelector('.destinataire-div');
                     numero = formExpedCompte.value;
+                    if (!(numero.length === 9)) return [3 /*break*/, 8];
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 6, , 7]);
+                    return [4 /*yield*/, getNomComplet(numero)];
+                case 2:
+                    nomComplet = _a.sent();
+                    if (!nomComplet) return [3 /*break*/, 4];
+                    formExpediteur.value = nomComplet;
+                    return [4 /*yield*/, getFournisseur(numero)];
+                case 3:
+                    fournisseur = _a.sent();
+                    if (transactionDiv && destinataireDiv) {
+                        transactionDiv.classList.remove('om', 'wv', 'wr', 'cb');
+                        destinataireDiv.classList.remove('om', 'wv', 'wr', 'cb');
+                        if (fournisseur) {
+                            transactionDiv.classList.add(fournisseur.toLowerCase());
+                            destinataireDiv.classList.add(fournisseur.toLowerCase());
+                        }
+                    }
+                    return [3 /*break*/, 5];
+                case 4:
+                    formExpediteur.value = "Le numero invalide";
+                    formExpediteur.style.color = 'red';
+                    _a.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
+                    error_1 = _a.sent();
+                    console.error(error_1);
+                    return [3 /*break*/, 7];
+                case 7: return [3 /*break*/, 9];
+                case 8:
+                    // Réinitialiser le champ "form_expediteur" si le numéro n'a pas 9 chiffres
+                    formExpediteur.value = '';
+                    _a.label = 9;
+                case 9: return [2 /*return*/];
+            }
+        });
+    });
+}
+function afficherNomComplet() {
+    return __awaiter(this, void 0, void 0, function () {
+        var formDestCompte, formDestinataire, numero, nomComplet, error_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    formDestCompte = document.getElementById('form_dest_compte');
+                    formDestinataire = document.getElementById('form_destinataire');
+                    numero = formDestCompte.value;
                     if (!(numero.length === 9)) return [3 /*break*/, 5];
                     _a.label = 1;
                 case 1:
@@ -69,30 +139,34 @@ function afficherNomComplet() {
                 case 2:
                     nomComplet = _a.sent();
                     if (nomComplet) {
-                        formExpediteur.value = nomComplet;
+                        formDestinataire.value = nomComplet;
                     }
                     else {
-                        formExpediteur.value = "Le numero n'est pas valide";
-                        formExpediteur.style.color = 'red';
+                        formDestinataire.value = "Le numero invalide";
+                        formDestinataire.style.color = 'red';
                     }
                     return [3 /*break*/, 4];
                 case 3:
-                    error_1 = _a.sent();
-                    console.error(error_1);
+                    error_2 = _a.sent();
+                    console.error(error_2);
                     return [3 /*break*/, 4];
                 case 4: return [3 /*break*/, 6];
                 case 5:
-                    formExpediteur.value = '';
+                    formDestinataire.value = '';
                     _a.label = 6;
                 case 6: return [2 /*return*/];
             }
         });
     });
 }
+// Ajouter l'écouteur d'événement "input" sur le champ "form_exped_compte"
+// const formExpedCompte = document.getElementById('form_exped_compte');
+if (formExpedCompte) {
+    formExpedCompte.addEventListener('input', handleInputEvent);
+}
 /**
  * Ajouter l'écouteur d'événement "input" sur le champ "form_exped_compte"
  */
-var formExpedCompte = document.getElementById('form_exped_compte');
-if (formExpedCompte) {
-    formExpedCompte.addEventListener('input', afficherNomComplet);
+if (formDestCompte) {
+    formDestCompte.addEventListener('input', afficherNomComplet);
 }
