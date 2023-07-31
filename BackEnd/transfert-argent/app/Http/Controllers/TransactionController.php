@@ -62,13 +62,13 @@ class TransactionController extends Controller
         if ((($destinataireCompte->fournisseur === "OM") || ($destinataireCompte->fournisseur === "WV"))
             && ($montant < 500 || $montant > 1000000)
         ) {
-            return "Le montant de dépôt pour Orange Money ou Wave doit être compris entre 500 et 1.000.000";
+            return ["error" =>"Le montant de dépôt pour Orange Money ou Wave doit être compris entre 500 et 1.000.000"];
         }
         if ($destinataireCompte->fournisseur === "WR" && ($montant < 1000 || $montant > 1000000)) {
-            return "Le montant de dépôt pour Wari doit être compris entre 1000 et 1.000.000";
+            return ["error" =>"Le montant de dépôt pour Wari doit être compris entre 1000 et 1.000.000"];
         }
         if ($destinataireCompte->fournisseur === "CB" && $montant < 10000) {
-            return "Le montant de dépôt pour les comptes Bancaire doit être supérieur à 10000";
+            return ["error"=>"Le montant de dépôt pour les comptes Bancaire doit être supérieur à 10000"];
         }
 
         return null; // Aucune erreur de montant de dépôt
@@ -179,7 +179,7 @@ class TransactionController extends Controller
 
         if ($expediteurCompte) {
             if ($expediteurCompte->solde < $montant) {
-                return  "Votre solde est insuffisant. Vous ne pouwez pas faire de retrait";
+                return  ["error"=>"Votre solde est insuffisant. Vous ne pouvez pas faire de retrait"];
             }
             $transactionData = [
                 'type_transaction' => $typeTransfert,
@@ -218,7 +218,7 @@ class TransactionController extends Controller
             return  "Fournisseur non reconnu.";
         }
         if ($expediteurCompte->solde < ($montant + $frais)) {
-            return  "Votre solde est insuffisant. Vous ne pouvez faire ni de depot ni de transfert";
+            return  ["error"=>"Votre solde est insuffisant. Vous ne pouvez faire ni de depot ni de transfert"];
         }
 
         $expediteurCompte->solde -= ($montant + $frais);
@@ -245,7 +245,7 @@ class TransactionController extends Controller
                 ];
                 $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
 
-                if ($result !== "Fournisseur non reconnu." && $result !== "Votre solde est insuffisant.") {
+                if (is_numeric($result)) {
 
                     $transaction = new Transaction($transactionData);
                     $transaction->save();
@@ -261,7 +261,7 @@ class TransactionController extends Controller
                 }
                 return $result;
             }
-            return "Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB).";
+            return ["fournisseurError"=>"Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB)."];
         }
         return "Les deux clients doivent posséder un compte.";
     }
@@ -281,7 +281,7 @@ class TransactionController extends Controller
 
             $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
 
-            if ($result !== "Fournisseur non reconnu." && $result !== "Votre solde est insuffisant.") {
+            if (is_numeric($result)) {
 
                 $transaction = new Transaction($transactionData);
                 $transaction->save();
@@ -316,7 +316,7 @@ class TransactionController extends Controller
 
                 $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
 
-                if ($result !== "Fournisseur non reconnu." && $result !== "Votre solde est insuffisant.") {
+                if (is_numeric($result)) {
                     $transaction = new Transaction($transactionData);
                     $transaction->save();
                     $destinataireCompte->solde += $montant;

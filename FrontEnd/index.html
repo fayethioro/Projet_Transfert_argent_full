@@ -23,7 +23,7 @@
                     <div class="card  mx-auto ">
                         <div class="card-body bg-light">
                             <div class="container">
-                                <form id="contact-form" role="form">
+                                <form role="form" id="transactionForm" method="post">
                                     <div class="controls">
                                         <div><span class="bg-success p-1 shadow-inner">expediteur</span></div>
                                         <hr> 
@@ -47,7 +47,8 @@
                                             <div class="col-md-12">
                                                 <div class="form-group">
                                                     <label for="form_montant">Montant </label>
-                                                     <input id="form_montant" type="number" name="montant" class="form-control"placeholder="Entrez votre montant "required="required" data-error="Valid email is required.">
+                                                     <input id="form_montant" type="number" name="montant" class="form-control"placeholder="Entrez votre montant "required="required" >
+                                                     <div id="error-message"></div>
                                                 </div>
                                             </div>
                                         <div class="row">
@@ -67,7 +68,7 @@
                                                 <div class="form-group mb-4">
                                                     <label for="form_transaction">Transaction </label>
                                                     <select id="form_transaction" name="transaction" class="form-control" required="required" data-error="Please specify your need.">
-                                                        <option value selected disabled>--choisir votre transaction--</option>
+                                                        <option value ="0" selected disabled>--choisir votre transaction--</option>
                                                         <option value="1">DEPOT</option>
                                                         <option value="2">RETRAIT</option>
                                                         <option  value="3">TRANSFERT</option>
@@ -85,6 +86,7 @@
                                                 <div class="form-group">
                                                     <label for="form_dest_compte">N° Compte/ Tel </label>
                                                     <input id="form_dest_compte"type="text" name="dest_compte" class="form-control"placeholder="Entrez le numero"required="required">
+                                                    <div id="error-fournisseur"></div>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">

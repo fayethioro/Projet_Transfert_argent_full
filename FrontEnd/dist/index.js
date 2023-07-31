@@ -36,6 +36,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var formExpedCompte = document.getElementById('form_exped_compte');
 var formDestCompte = document.getElementById('form_dest_compte');
+var transactionForm = document.getElementById('transactionForm');
+var errorMessageElement = document.getElementById('error-message');
+var errorFournisseurElement = document.getElementById('error-fournisseur');
+// const destinatiaireBloc = document.getElementById('destinataire_bloc') as HTMLElement;
 // Fonction pour effectuer la requête AJAX et récupérer le nom complet
 function getNomComplet(numero) {
     return __awaiter(this, void 0, void 0, function () {
@@ -70,7 +74,6 @@ function getFournisseur(numero) {
         });
     });
 }
-// Modifier la fonction handleInputEvent()
 function handleInputEvent() {
     return __awaiter(this, void 0, void 0, function () {
         var formExpedCompte, formExpediteur, transactionDiv, destinataireDiv, numero, nomComplet, fournisseur, error_1;
@@ -159,14 +162,86 @@ function afficherNomComplet() {
         });
     });
 }
-// Ajouter l'écouteur d'événement "input" sur le champ "form_exped_compte"
-// const formExpedCompte = document.getElementById('form_exped_compte');
+// La fonction pour gérer la soumission du formulaire
+function handleSubmitEvent(event) {
+    return __awaiter(this, void 0, void 0, function () {
+        var formExpedCompte, formMontant, formTransaction, formDestCompte, numeroExpediteur, montant, typeTransfert, numeroDestinataire, response, data, error_3;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    event.preventDefault();
+                    formExpedCompte = document.getElementById('form_exped_compte');
+                    formMontant = document.getElementById('form_montant');
+                    formTransaction = document.getElementById('form_transaction');
+                    formDestCompte = document.getElementById('form_dest_compte');
+                    numeroExpediteur = formExpedCompte.value;
+                    montant = +formMontant.value;
+                    typeTransfert = +formTransaction.value;
+                    numeroDestinataire = formDestCompte.value;
+                    console.log(numeroExpediteur);
+                    console.log(montant);
+                    console.log(typeTransfert);
+                    console.log(numeroDestinataire);
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 4, , 5]);
+                    return [4 /*yield*/, fetch('http://127.0.0.1:8000/transfert-api/transactions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                type_transaction: typeTransfert,
+                                montant: montant,
+                                expediteur: numeroExpediteur,
+                                destinataire: numeroDestinataire
+                            })
+                        })];
+                case 2:
+                    response = _a.sent();
+                    // console.log(JSON.stringify({
+                    //     type_transaction: typeTransfert,
+                    //     montant: montant,
+                    //     expediteur: numeroExpediteur,
+                    //     destinataire: numeroDestinataire
+                    // }));
+                    // console.log(response);
+                    if (!response.ok) {
+                        throw new Error('La requête a échoué.');
+                    }
+                    return [4 /*yield*/, response.json()];
+                case 3:
+                    data = _a.sent();
+                    if (data.error) {
+                        errorMessageElement.style.display = "block";
+                        errorMessageElement.textContent = data.error;
+                    }
+                    else if (data.fournisseurError) {
+                        errorFournisseurElement.style.display = "block";
+                        errorFournisseurElement.textContent = data.fournisseurError;
+                    }
+                    else {
+                        errorMessageElement.style.display = "none";
+                        alert("succes");
+                    }
+                    console.log(data);
+                    return [3 /*break*/, 5];
+                case 4:
+                    error_3 = _a.sent();
+                    console.error('Erreur lors de la transaction :', error_3);
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
+            }
+        });
+    });
+}
 if (formExpedCompte) {
     formExpedCompte.addEventListener('input', handleInputEvent);
 }
-/**
- * Ajouter l'écouteur d'événement "input" sur le champ "form_exped_compte"
- */
 if (formDestCompte) {
     formDestCompte.addEventListener('input', afficherNomComplet);
+}
+if (transactionForm) {
+    transactionForm.addEventListener('submit', handleSubmitEvent);
 }

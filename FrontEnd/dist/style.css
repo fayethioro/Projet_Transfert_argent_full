@@ -94,3 +94,10 @@ span, button
 .cb{
     background: yellow;
 }
+#error-message, #error-fournisseur{
+    display: none;
+    color: red;
+}
+.destinataire_bloc{
+    display: none;
+}
