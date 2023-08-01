@@ -13,9 +13,6 @@ class TransactionController extends Controller
     /**
      * Méthode pour traiter le dépôt
      */
-
-
-
     public function traiterTransfertArgent(Request $request)
     {
         $typeTransfert = $request->type_transaction;
@@ -334,5 +331,9 @@ class TransactionController extends Controller
             return "Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB).";
         }
         return "Les deux clients doivent posséder un compte.";
+    }
+
+    public function afficheTransaction(){
+        return ["transaction" => Transaction::all()];
     }
 }

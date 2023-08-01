@@ -7,7 +7,8 @@
 body {
     color: #000;
     overflow-x: hidden;
-    background: url("https://i.imgur.com/GMmCQHC.png") , rgb(187, 216, 241);
+    background:url("https://img.freepik.com/photos-gratuite/concept-controle-qualite-standard-m_23-2150041859.jpg?w=996&t=st=1690794390~exp=1690794990~hmac=bf7b6da97c500b6e624dc74932304f7f91adc54c5e7973d166b986a8afff1b92"), linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(35, 35, 40, 0.456) 35%, rgba(0, 213, 255, 0.369) 100%);
+    /* background: url("https://i.imgur.com/GMmCQHC.png") , #bbd8f173; */
     width: 100vw;
     height: 100vh;
     background-repeat: no-repeat;
@@ -15,11 +16,40 @@ body {
 }
 
 .card {
-    padding: 10px 20px;
-    /* margin-top: 10px;
-    margin-bottom: 20px; */
+    padding: 5px 5px;
     box-shadow: 0 6px 12px 0 rgba(0, 0, 0, 0.2);
     height: 97%;
+    
+
+}
+.modal_transaction{
+    height: 97%;
+    background: rgba(240, 248, 255, 0.685);
+    width: 36%;
+    padding: 5px 5px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.16), 0 4px 10px rgba(0,0,0,0.23); 
+    position: absolute;
+    left: 59%;
+    display: none;
+
+} 
+.ferme{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    border:red solid 2px;
+    color: red;
+    margin-right:20px ;
+    margin-top: 10px;
+    font-weight: 900;
+    /* border-radius: 20px; */
+    cursor: pointer;
+}
+.ferme:hover{
+    background:red; 
+    color: white;
 }
 .card-body{
     height: 100%;
@@ -33,9 +63,9 @@ body {
 }
 
 input, textarea, button {
-    padding: 8px 15px;
+    padding: 8px 10px;
     border-radius: 5px !important;
-    margin: 5px 0px;
+    /* margin: 5px 0px; */
     box-sizing: border-box;
     border: 1px solid #ccc;
     font-size: 18px !important;
@@ -74,6 +104,7 @@ span, button
 {
     box-shadow: 0 4px 10px rgba(0,0,0,0.16), 0 4px 10px rgba(0,0,0,0.23); 
     border-radius: 5px;
+    margin-top: 5px;
     color: #ccc;
     padding: 5px;
 }
@@ -81,7 +112,32 @@ span, button
    
     height: 90%;
 }
+.info
+{
+    color: #00BCD4;
+    position: absolute;
+    right: 0;
+    margin-right: 30px;
+    top: 20%;
+    height: 60px;
+    width: 60;
+    cursor: pointer;
+}
 
+.tittle{
+    justify-content: center;
+    font-weight: 600; 
+    text-align : center;
+    padding: 5px;
+    font-size: 18px;
+}
+.mon_tran {
+   
+    color:blue;
+    margin-left: 10px;
+    box-shadow: none; 
+
+}
 .om{
     background: orange;
 }

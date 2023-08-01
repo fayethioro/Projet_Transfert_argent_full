@@ -39,7 +39,9 @@ var formDestCompte = document.getElementById('form_dest_compte');
 var transactionForm = document.getElementById('transactionForm');
 var errorMessageElement = document.getElementById('error-message');
 var errorFournisseurElement = document.getElementById('error-fournisseur');
-// const destinatiaireBloc = document.getElementById('destinataire_bloc') as HTMLElement;
+var info = document.querySelector('.info');
+var modalTransaction = document.querySelector('.modal_transaction');
+var modalFerme = document.querySelector('.ferme');
 // Fonction pour effectuer la requête AJAX et récupérer le nom complet
 function getNomComplet(numero) {
     return __awaiter(this, void 0, void 0, function () {
@@ -74,9 +76,32 @@ function getFournisseur(numero) {
         });
     });
 }
+function getTransactions() {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, data, error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    return [4 /*yield*/, fetch('http://127.0.0.1:8000/transfert-api/transactions')];
+                case 1:
+                    response = _a.sent();
+                    return [4 /*yield*/, response.json()];
+                case 2:
+                    data = _a.sent();
+                    return [2 /*return*/, data.transaction];
+                case 3:
+                    error_1 = _a.sent();
+                    console.error(error_1);
+                    return [2 /*return*/, []];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
 function handleInputEvent() {
     return __awaiter(this, void 0, void 0, function () {
-        var formExpedCompte, formExpediteur, transactionDiv, destinataireDiv, numero, nomComplet, fournisseur, error_1;
+        var formExpedCompte, formExpediteur, transactionDiv, destinataireDiv, formFournisseur, numero, nomComplet, fournisseur, optionValue, i, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -84,6 +109,7 @@ function handleInputEvent() {
                     formExpediteur = document.getElementById('form_expediteur');
                     transactionDiv = document.querySelector('.transaction-div');
                     destinataireDiv = document.querySelector('.destinataire-div');
+                    formFournisseur = document.getElementById('form_fournisseur');
                     numero = formExpedCompte.value;
                     if (!(numero.length === 9)) return [3 /*break*/, 8];
                     _a.label = 1;
@@ -103,6 +129,14 @@ function handleInputEvent() {
                         if (fournisseur) {
                             transactionDiv.classList.add(fournisseur.toLowerCase());
                             destinataireDiv.classList.add(fournisseur.toLowerCase());
+                            optionValue = fournisseur.toUpperCase();
+                            for (i = 0; i < formFournisseur.options.length; i++) {
+                                if (formFournisseur.options[i].value === optionValue) {
+                                    formFournisseur.selectedIndex = i;
+                                    formFournisseur.style.pointerEvents = "none";
+                                    break;
+                                }
+                            }
                         }
                     }
                     return [3 /*break*/, 5];
@@ -112,8 +146,8 @@ function handleInputEvent() {
                     _a.label = 5;
                 case 5: return [3 /*break*/, 7];
                 case 6:
-                    error_1 = _a.sent();
-                    console.error(error_1);
+                    error_2 = _a.sent();
+                    console.error(error_2);
                     return [3 /*break*/, 7];
                 case 7: return [3 /*break*/, 9];
                 case 8:
@@ -127,7 +161,7 @@ function handleInputEvent() {
 }
 function afficherNomComplet() {
     return __awaiter(this, void 0, void 0, function () {
-        var formDestCompte, formDestinataire, numero, nomComplet, error_2;
+        var formDestCompte, formDestinataire, numero, nomComplet, error_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -150,8 +184,8 @@ function afficherNomComplet() {
                     }
                     return [3 /*break*/, 4];
                 case 3:
-                    error_2 = _a.sent();
-                    console.error(error_2);
+                    error_3 = _a.sent();
+                    console.error(error_3);
                     return [3 /*break*/, 4];
                 case 4: return [3 /*break*/, 6];
                 case 5:
@@ -165,7 +199,7 @@ function afficherNomComplet() {
 // La fonction pour gérer la soumission du formulaire
 function handleSubmitEvent(event) {
     return __awaiter(this, void 0, void 0, function () {
-        var formExpedCompte, formMontant, formTransaction, formDestCompte, numeroExpediteur, montant, typeTransfert, numeroDestinataire, response, data, error_3;
+        var formExpedCompte, formMontant, formTransaction, formDestCompte, numeroExpediteur, montant, typeTransfert, numeroDestinataire, response, data, error_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -225,13 +259,39 @@ function handleSubmitEvent(event) {
                         errorMessageElement.style.display = "none";
                         alert("succes");
                     }
-                    console.log(data);
                     return [3 /*break*/, 5];
                 case 4:
-                    error_3 = _a.sent();
-                    console.error('Erreur lors de la transaction :', error_3);
+                    error_4 = _a.sent();
+                    console.error('Erreur lors de la transaction :', error_4);
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
+            }
+        });
+    });
+}
+function afficherTransactions() {
+    return __awaiter(this, void 0, void 0, function () {
+        var transactionsDiv, transactions;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    transactionsDiv = document.getElementById('list_transactions');
+                    transactionsDiv.innerHTML = '';
+                    return [4 /*yield*/, getTransactions()];
+                case 1:
+                    transactions = _a.sent();
+                    console.log(transactions);
+                    if (transactions.length == 0) {
+                        transactionsDiv.innerHTML = "<h3 class=\"text-danger\" >Aucun transaction</h3>";
+                    }
+                    else {
+                        transactions.forEach(function (transaction) {
+                            var transactionDiv = document.createElement('div');
+                            transactionDiv.innerHTML = "\n              <hr>\n              <h3 class:\"tittle\">".concat(transaction.type_transaction, "</h3>\n              <div class=\"transaction_expediteur\">numero expediteur:<span class=\"mon_tran\">").concat(transaction.numero_expediteur, "</span></div>\n              <div class=\"transaction_destinataire\">numero destinataire:<span class=\"mon_tran\">").concat(transaction.numero_destinataire, "</span></div>\n              <div class=\"date\">Date :<span class=\"mon_tran\">").concat(transaction.date_transaction, "</span></div>\n              <div class=\"montant_tr\">montant :<span class=\"mon_tran\">").concat(transaction.date_transaction, "</span></div>\n            ");
+                            transactionsDiv.appendChild(transactionDiv);
+                        });
+                    }
+                    return [2 /*return*/];
             }
         });
     });
@@ -245,3 +305,10 @@ if (formDestCompte) {
 if (transactionForm) {
     transactionForm.addEventListener('submit', handleSubmitEvent);
 }
+info.addEventListener('click', function () {
+    modalTransaction.style.display = "block";
+    afficherTransactions();
+});
+modalFerme.addEventListener('click', function () {
+    modalTransaction.style.display = "none";
+});

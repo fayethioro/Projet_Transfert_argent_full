@@ -4,7 +4,9 @@ const formDestCompte = document.getElementById('form_dest_compte');
 const transactionForm = document.getElementById('transactionForm');
 const errorMessageElement = document.getElementById('error-message') as HTMLElement;
 const errorFournisseurElement = document.getElementById('error-fournisseur') as HTMLElement;
-// const destinatiaireBloc = document.getElementById('destinataire_bloc') as HTMLElement;
+const info = document.querySelector('.info') as HTMLElement;
+const modalTransaction = document.querySelector('.modal_transaction') as HTMLElement;
+const modalFerme = document.querySelector('.ferme') as HTMLElement;
 
 
 
@@ -21,11 +23,25 @@ async function getFournisseur(numero: string): Promise<string> {
     return data.fournisseur;
 }
 
+async function getTransactions(): Promise<any[]> {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/transfert-api/transactions');
+      const data = await response.json();
+      return data.transaction;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  }
+  
+
 async function handleInputEvent() {
     const formExpedCompte = document.getElementById('form_exped_compte') as HTMLInputElement;
     const formExpediteur = document.getElementById('form_expediteur') as HTMLInputElement;
     const transactionDiv = document.querySelector('.transaction-div');
     const destinataireDiv = document.querySelector('.destinataire-div');
+    const formFournisseur = document.getElementById('form_fournisseur') as HTMLSelectElement;
+
     
 
     const numero = formExpedCompte.value;
@@ -45,6 +61,16 @@ async function handleInputEvent() {
                     if (fournisseur) {
                         transactionDiv.classList.add(fournisseur.toLowerCase()); 
                         destinataireDiv.classList.add(fournisseur.toLowerCase()); 
+
+                        const optionValue = fournisseur.toUpperCase();
+
+                        for (let i = 0; i < formFournisseur.options.length; i++) {
+                            if (formFournisseur.options[i].value === optionValue) {
+                                formFournisseur.selectedIndex = i;
+                                formFournisseur.style.pointerEvents = "none";
+                                break;
+                            }
+                        }
                     }
                 }
             } else {
@@ -82,6 +108,7 @@ async function afficherNomComplet() {
         formDestinataire.value = '';
     }
 }
+
 
 // La fonction pour gérer la soumission du formulaire
 async function handleSubmitEvent(event: Event) {
@@ -127,7 +154,7 @@ async function handleSubmitEvent(event: Event) {
         if (!response.ok) {
             throw new Error('La requête a échoué.');
           }
-      
+    
           const data = await response.json();
          if (data.error) {
             errorMessageElement.style.display = "block"
@@ -142,8 +169,6 @@ async function handleSubmitEvent(event: Event) {
             alert("succes");
             
          }
-
-          console.log(data);
     } catch (error :any) {
         
        
@@ -151,7 +176,32 @@ async function handleSubmitEvent(event: Event) {
         
     }
 }
-
+async function afficherTransactions() {
+    const transactionsDiv = document.getElementById('list_transactions') as HTMLElement;
+    transactionsDiv.innerHTML = ''; 
+  
+    const transactions = await getTransactions();
+    console.log(transactions);
+    if (transactions.length == 0) {
+        transactionsDiv.innerHTML = `<h3 class="text-danger" >Aucun transaction</h3>`
+    }
+     else{
+        transactions.forEach((transaction) => {
+            const transactionDiv = document.createElement('div');
+            transactionDiv.innerHTML = `
+              <hr>
+              <h3 class:"tittle">${transaction.type_transaction}</h3>
+              <div class="transaction_expediteur">numero expediteur:<span class="mon_tran">${transaction.numero_expediteur}</span></div>
+              <div class="transaction_destinataire">numero destinataire:<span class="mon_tran">${transaction.numero_destinataire}</span></div>
+              <div class="date">Date :<span class="mon_tran">${transaction.date_transaction}</span></div>
+              <div class="montant_tr">montant :<span class="mon_tran">${transaction.date_transaction}</span></div>
+            `;
+            transactionsDiv.appendChild(transactionDiv);
+          });
+     }
+  }
+ 
+  
 
 if (formExpedCompte) {
     formExpedCompte.addEventListener('input', handleInputEvent);
@@ -163,9 +213,20 @@ if (transactionForm) {
     transactionForm.addEventListener('submit', handleSubmitEvent);
 }
 
+info.addEventListener('click' , ()=>{
+    modalTransaction.style.display = "block";
+    afficherTransactions();
+});
+
+modalFerme.addEventListener('click' , ()=>{
+    modalTransaction.style.display = "none";
+});
+
 
 
 
 
 
   
+
+

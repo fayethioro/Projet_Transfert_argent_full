@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('numero_destinataire')->nullable()->index();
             $table->foreign('numero_destinataire')->references('numero')->on('clients');
         });
-    }
+    }     
 
     /**
      * Reverse the migrations.
