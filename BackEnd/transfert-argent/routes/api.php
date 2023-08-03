@@ -27,8 +27,10 @@ Route::apiresource('/comptes' , CompteController::class)->only("index");
 
 Route::post('/transactions' , [TransactionController::class , "traiterTransfertArgent"]);
 Route::get('/transactions' , [TransactionController::class , "afficheTransaction"]);
-Route::get('/clients/nomComplet' , [TransactionController::class , "afficheNomComplet"]);
-Route::get('/clients/fournisseur' , [TransactionController::class , "nomFournisseur"]);
+
+Route::get('/clients/nomComplet/{numero}' , [TransactionController::class , "afficheNomComplet"]);
+Route::get('/clients/fournisseur/{numero}' , [TransactionController::class , "nomFournisseur"]);
+Route::get('/clients/compte/{numero}' , [TransactionController::class , "rechercherParCompte"]);
 
 
 

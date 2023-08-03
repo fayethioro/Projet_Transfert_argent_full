@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\TransactionResource;
 use App\Models\Client;
 use App\Models\Compte;
 use App\Models\Transaction;
@@ -84,9 +85,9 @@ class TransactionController extends Controller
     {
         return Client::find($clientId) !== null;
     }
-    public function afficheNomComplet(Request $request)
+    public function afficheNomComplet($numero)
     {
-        $numeroClient = $request->numero;
+        $numeroClient = $numero;
        if ($this->estClient($numeroClient)) {
            $client = Client::where('numero', $numeroClient)->get()->first();
            return [
@@ -96,9 +97,23 @@ class TransactionController extends Controller
        return ["error" =>"le numero n'existe pas"];
     }
 
-    public function nomFournisseur(Request $request)
+    public function rechercherParCompte($numero)
     {
-        $numeroClient = $request->numero;
+        $numeroCompte = $numero;
+        $compte = Compte::where('numero_compte', $numeroCompte)->get()->first();
+        if ($compte) {
+            $numeroClient = $compte->numero_client;
+           $client = Client::where('numero', $numeroClient)->get()->first();
+           return [
+            "NomComplet" => "{$client->prenom} {$client->nom} "
+           ];
+        }
+       return ["error" =>"le numero n'existe pas"];
+    }
+
+    public function nomFournisseur($numero)
+    {
+        $numeroClient = $numero;
 
         $fournisseur = Compte::where('numero_client', $numeroClient)->get()->first();
         if ($this->clientPossedeCompte($numeroClient)) {
@@ -334,6 +349,8 @@ class TransactionController extends Controller
     }
 
     public function afficheTransaction(){
-        return ["transaction" => Transaction::all()];
+
+        $transactions = Transaction::all();
+        return ["transaction" => TransactionResource::collection($transactions)];
     }
 }
