@@ -1,0 +1,20 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    color: #000;
+    overflow-x: hidden;
+    background:url("https://img.freepik.com/photos-gratuite/concept-controle-qualite-standard-m_23-2150041859.jpg?w=996&t=st=1690794390~exp=1690794990~hmac=bf7b6da97c500b6e624dc74932304f7f91adc54c5e7973d166b986a8afff1b92"), linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(35, 35, 40, 0.456) 35%, rgba(0, 213, 255, 0.369) 100%);
+    /* background: url("https://i.imgur.com/GMmCQHC.png") , #bbd8f173; */
+    width: 100vw;
+    height: 100vh;
+    background-repeat: no-repeat;
+    background-size: 100% 100%
+}
+.navbar{
+    color: white;
+    background: aliceblue;
+}
