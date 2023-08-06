@@ -298,6 +298,8 @@ export async function ajouterClient(event: Event) {
       }
 
       const data = await response.json();
+      console.log(data);
+      
       modalClient.style.display = "none"
       afficherNotifi("succes");
       afficherClients();
@@ -314,8 +316,8 @@ export function afficherNotifi(message: string) {
   formMontant.innerHTML = "";
   formDestCompte.innerHTML = "";
   formTransaction.innerHTML = "";
-  // setTimeout(() => {
-  //   notifi.style.display = "none";
-  // }, 5000);
+  setTimeout(() => {
+    notifi.style.display = "none";
+  }, 5000);
 }
 
