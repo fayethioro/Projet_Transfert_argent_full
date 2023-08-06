@@ -21,9 +21,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::apiresource('/clients' , ClientController::class)->only("index");
+Route::resource('/clients' , ClientController::class)->only("index" , "store");
 
-Route::apiresource('/comptes' , CompteController::class)->only("index");
+
+Route::apiresource('/comptes' , CompteController::class)->only("index", "store");
+Route::get('/comptes/fournisseur' , [CompteController::class , "recupereLesFournisseurs"]);
+
 
 Route::post('/transactions' , [TransactionController::class , "traiterTransfertArgent"]);
 Route::get('/transactions' , [TransactionController::class , "afficheTransaction"]);

@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "lite-server",
-    "watch": "tsc ./src/index.ts --outDir dist  -w"
+    "serve": "lite-server & tsc --watch"
+
+  
   },
   "keywords": [],
   "author": "",

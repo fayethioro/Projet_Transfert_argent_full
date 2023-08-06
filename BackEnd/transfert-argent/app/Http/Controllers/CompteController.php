@@ -15,5 +15,14 @@ class CompteController extends Controller
         return Compte::all();
     }
 
+    public function recupereLesFournisseurs()
+    {
+        $compte = Compte::all();
+
+        // $fourni = $compte->fournisseur;
+
+        return $compte;
+    }
+
 
 }
