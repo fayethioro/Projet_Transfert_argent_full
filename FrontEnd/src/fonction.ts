@@ -2,7 +2,7 @@ import {
   errorFournisseurElement, formExpedCompte, formExpediteur, transactionDiv, destinataireDiv,formFournisseur,formDestCompte,
   formDestinataire,formMontant,formTransaction,prevButton,nextButton,precButton,suivButton,notif,errorMessageElement,prenomClient,
   nomClient,telephoneClient,emailClient, erreurPrenom,erreurNom,erreurEmail,erreurNumero,modalClient,notifi,fournisseur,numeroClient, 
-  erreurFournisseur, erreurNumeroClient, nomCompletErreur,
+  erreurFournisseur, erreurNumeroClient, nomCompletErreur,dest,
 } from "./dom.js";
 
 import {
@@ -34,8 +34,10 @@ export async function gererNomExpediteur(): Promise<void> {
         const fournisseur = await getFournisseur(numero);
         console.log(fournisseur);
         if (fournisseur == "WR") {
-          formFournisseur.value = "WR";
-          formFournisseur.style.pointerEvents = "none"
+          formTransaction.value = "1";
+          formTransaction.style.pointerEvents = "none";
+        dest.style.display = "block";
+
         }
 
         if (transactionDiv && destinataireDiv) {
@@ -67,6 +69,14 @@ export async function gererNomDestinataire() {
 
       if (nomComplet) {
         formDestinataire.value = nomComplet[0];
+
+        const fournisseur = await getFournisseur(numero);
+        console.log(fournisseur);
+        if (fournisseur == "WR") {
+          formFournisseur.value = "WR";
+          // formFournisseur.style.pointerEvents = "none"
+        }
+        
       } else {
         formDestinataire.value = "Le numero invalide";
         formDestinataire.style.color = "red";
@@ -76,6 +86,7 @@ export async function gererNomDestinataire() {
     }
   } else {
     formDestinataire.value = "";
+
   }
 }
 export async function ajouterTransaction(event: Event) {

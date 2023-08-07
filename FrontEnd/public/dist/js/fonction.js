@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { errorFournisseurElement, formExpedCompte, formExpediteur, transactionDiv, destinataireDiv, formFournisseur, formDestCompte, formDestinataire, formMontant, formTransaction, prevButton, nextButton, precButton, suivButton, notif, errorMessageElement, prenomClient, nomClient, telephoneClient, emailClient, erreurPrenom, erreurNom, erreurEmail, erreurNumero, modalClient, notifi, fournisseur, numeroClient, erreurFournisseur, erreurNumeroClient, nomCompletErreur, } from "./dom.js";
+import { errorFournisseurElement, formExpedCompte, formExpediteur, transactionDiv, destinataireDiv, formFournisseur, formDestCompte, formDestinataire, formMontant, formTransaction, prevButton, nextButton, precButton, suivButton, notif, errorMessageElement, prenomClient, nomClient, telephoneClient, emailClient, erreurPrenom, erreurNom, erreurEmail, erreurNumero, modalClient, notifi, fournisseur, numeroClient, erreurFournisseur, erreurNumeroClient, nomCompletErreur, dest, } from "./dom.js";
 import { getNomComplet, getNomCompletViaCompte, getFournisseur, getTransactions, getClients, getComptes, getBloqueCompte, getDeBloqueCompte, getFermerCompte, getTransactionsClient, } from "./fetch.js";
 export const itemsParPage = 2;
 export const itemsParPageClient = 6;
@@ -32,8 +32,9 @@ export function gererNomExpediteur() {
                     const fournisseur = yield getFournisseur(numero);
                     console.log(fournisseur);
                     if (fournisseur == "WR") {
-                        formFournisseur.value = "WR";
-                        formFournisseur.style.pointerEvents = "none";
+                        formTransaction.value = "1";
+                        formTransaction.style.pointerEvents = "none";
+                        dest.style.display = "block";
                     }
                     if (transactionDiv && destinataireDiv) {
                         transactionDiv.classList.remove("om", "wv", "wr", "cb");
@@ -66,6 +67,11 @@ export function gererNomDestinataire() {
                 const nomComplet = yield getNomComplet(numero);
                 if (nomComplet) {
                     formDestinataire.value = nomComplet[0];
+                    const fournisseur = yield getFournisseur(numero);
+                    console.log(fournisseur);
+                    if (fournisseur == "WR") {
+                        formFournisseur.value = "WR";
+                    }
                 }
                 else {
                     formDestinataire.value = "Le numero invalide";

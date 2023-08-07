@@ -223,15 +223,15 @@ class TransactionController extends Controller
     }
     /**
      * Traiter les frais pour chaque fournisseur et le solde
-     */ private function traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant)
+     */ private function traiterFraisEtSolde($numeroExpediteur, $montant)
     {
-        $destinataireCompte = Compte::where('numero_client', $numeroDestinataire)->first();
+        $expediteurCompte = Compte::where('numero_client', $numeroExpediteur)->first();
 
-        if ($destinataireCompte->fournisseur === "OM" || $destinataireCompte->fournisseur === "WV") {
+        if ($expediteurCompte->fournisseur === "OM" || $expediteurCompte->fournisseur === "WV") {
             $frais = $montant * 0.01;
-        } elseif ($destinataireCompte->fournisseur === "WR") {
+        } elseif ($expediteurCompte->fournisseur === "WR") {
             $frais = $montant * 0.02;
-        } elseif ($destinataireCompte->fournisseur === "CB") {
+        } elseif ($expediteurCompte->fournisseur === "CB") {
             $frais = $montant * 0.05;
         } else {
             return  "Fournisseur non reconnu.";
@@ -263,7 +263,7 @@ class TransactionController extends Controller
                         'numero_expediteur' => $numeroExpediteur,
                         'numero_destinataire' => $numeroDestinataire,
                     ];
-                    $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
+                    $result = $this->traiterFraisEtSolde($expediteurCompte->numero_client, $montant);
 
                     if (is_numeric($result)) {
 
@@ -301,7 +301,7 @@ class TransactionController extends Controller
                 'code' => $this->genererCode(25)
             ];
 
-            $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
+            $result = $this->traiterFraisEtSolde($expediteurCompte->numero_client, $montant);
 
             if (is_numeric($result)) {
 
@@ -316,7 +316,7 @@ class TransactionController extends Controller
             }
             return $result;
         }
-        return "L'expediteur doit posséder un compte et le le numero du destinataire doit etre valide";
+        return ["fournisseurError"=>"L'expediteur doit posséder un compte et le le numero du destinataire doit etre valide"];
     }
 
 
@@ -336,7 +336,7 @@ class TransactionController extends Controller
                     'code' => $this->genererCode(30)
                 ];
 
-                $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
+                $result = $this->traiterFraisEtSolde($expediteurCompte->numero_client, $montant);
 
                 if (is_numeric($result)) {
                     $transaction = new Transaction($transactionData);
@@ -353,7 +353,7 @@ class TransactionController extends Controller
                 }
                 return $result;
             }
-            return "Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB).";
+            return ["fournisseurError"=>"Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB)."];
         }
         return "Les deux clients doivent posséder un compte.";
     }
@@ -409,5 +409,6 @@ class TransactionController extends Controller
         "transactions" => TransactionResource::collection($transactions)
     ];
 }
+
 
 }
