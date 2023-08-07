@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreClientRequest;
 use App\Models\Client;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use App\Http\Requests\StoreClientRequest;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\TransactionResource;
+use Symfony\Component\HttpFoundation\Response;
 
 class ClientController extends Controller
 {
@@ -41,7 +43,6 @@ class ClientController extends Controller
         "client" => $client,
     ];
     }
-
 
 
 }

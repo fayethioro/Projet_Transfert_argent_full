@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Models\Compte;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class TransactionController extends Controller
 {
@@ -88,13 +89,23 @@ class TransactionController extends Controller
     public function afficheNomComplet($numero)
     {
         $numeroClient = $numero;
+
        if ($this->estClient($numeroClient)) {
            $client = Client::where('numero', $numeroClient)->get()->first();
+           if (!$this->clientPossedeCompte($numeroClient)) {
+            return [
+                "message" => "Client ne possede pas de compte on peut faire que de dépot",
+                "NomComplet" => "{$client->prenom} {$client->nom} "
+               ];
+           }
            return [
+            "message" =>"",
             "NomComplet" => "{$client->prenom} {$client->nom} "
            ];
        }
-       return ["error" =>"le numero n'existe pas"];
+       return [
+        "message" => "le numero n'existe pas",
+        "error" =>"le numero n'existe pas"];
     }
 
     public function rechercherParCompte($numero)
@@ -108,27 +119,23 @@ class TransactionController extends Controller
             "NomComplet" => "{$client->prenom} {$client->nom} "
            ];
         }
-       return ["error" =>"le numero n'existe pas"];
+       return ["error" =>"le numero de compte n'existe pas"];
     }
 
     public function nomFournisseur($numero)
     {
         $numeroClient = $numero;
 
-        $fournisseur = Compte::where('numero_client', $numeroClient)->get()->first();
-        if ($this->clientPossedeCompte($numeroClient)) {
-            return [
-                "fournisseur" =>$fournisseur->fournisseur
-            ];
+        $fournisseur = Compte::where('numero_client', $numeroClient)
+                                ->orWhere('numero_compte', $numeroClient)
+                               ->first();
+        if ($fournisseur) {
+            return ["fournisseur" =>$fournisseur->fournisseur];
         }
         if ($this->estClient($numeroClient)) {
-            return [
-                "fournisseur" =>"Wari"
-            ];
+            return ["fournisseur" =>"WR"];
         }
         return ["error" =>"le numero n'existe pas"];
-
-
     }
     /**
      * generer code
@@ -189,7 +196,7 @@ class TransactionController extends Controller
     {
         $expediteurCompte = Compte::where('numero_client', $numeroExpediteur)->get()->first();
 
-        if ($expediteurCompte) {
+        if ($expediteurCompte && $expediteurCompte->etat !== 0 ) {
             if ($expediteurCompte->solde < $montant) {
                 return  ["error"=>"Votre solde est insuffisant. Vous ne pouvez pas faire de retrait"];
             }
@@ -212,7 +219,7 @@ class TransactionController extends Controller
                 "transaction" => $transaction
             ];
         }
-        return "le client doit avoir un compte";
+        return ["retraitError" => "le client doit avoir un compte ou son compte est peut etre bloques"];
     }
     /**
      * Traiter les frais pour chaque fournisseur et le solde
@@ -248,30 +255,33 @@ class TransactionController extends Controller
 
         if ($this->clientPossedeCompte($numeroExpediteur) && $this->clientPossedeCompte($numeroDestinataire)) {
             if ($destinataireCompte->fournisseur === $expediteurCompte->fournisseur) {
-                $transactionData = [
-                    'type_transaction' => $typeTransfert,
-                    'montant' => $montant,
-                    'date_transaction' => now(),
-                    'numero_expediteur' => $numeroExpediteur,
-                    'numero_destinataire' => $numeroDestinataire,
-                ];
-                $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
-
-                if (is_numeric($result)) {
-
-                    $transaction = new Transaction($transactionData);
-                    $transaction->save();
-                    $destinataireCompte->solde += $montant;
-                    $destinataireCompte->save();
-                    return [
-                        "message" => "Le transfert a été effectué avec succès.",
-                        "expediteur" => $expediteurCompte,
-                        "destinataire" => $destinataireCompte,
-                        "transaction" => $transaction,
-                        "frais" => $result
+                if ($expediteurCompte->etat === 1) {
+                    $transactionData = [
+                        'type_transaction' => $typeTransfert,
+                        'montant' => $montant,
+                        'date_transaction' => now(),
+                        'numero_expediteur' => $numeroExpediteur,
+                        'numero_destinataire' => $numeroDestinataire,
                     ];
+                    $result = $this->traiterFraisEtSolde($expediteurCompte, $numeroDestinataire, $montant);
+
+                    if (is_numeric($result)) {
+
+                        $transaction = new Transaction($transactionData);
+                        $transaction->save();
+                        $destinataireCompte->solde += $montant;
+                        $destinataireCompte->save();
+                        return [
+                            "message" => "Le transfert a été effectué avec succès.",
+                            "expediteur" => $expediteurCompte,
+                            "destinataire" => $destinataireCompte,
+                            "transaction" => $transaction,
+                            "frais" => $result
+                        ];
+                    }
+                    return $result;
                 }
-                return $result;
+                return ["fournisseurError"=>"Le compte est bloque il ne peut faire  que de depot ou transfert entrant"]; ;
             }
             return ["fournisseurError"=>"Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB)."];
         }
@@ -353,4 +363,51 @@ class TransactionController extends Controller
         $transactions = Transaction::all();
         return ["transaction" => TransactionResource::collection($transactions)];
     }
+
+
+    public function listeTransactionClient($numeroClient){
+
+        $transactionsExpediteur = Transaction::where("numero_expediteur", $numeroClient)->get();
+        $transactionsDestinataire = Transaction::where("numero_destinataire", $numeroClient)->get();
+
+        $transactions = $transactionsExpediteur->merge($transactionsDestinataire);
+
+        return [
+            "statutCode" => Response::HTTP_OK,
+            "message" =>"listes des transaction d'un client",
+            "transactionsclients" => TransactionResource::collection($transactions)
+        ] ;
+    }
+
+
+    public function listeTransactionClientParTrie($numeroClient, $triPar = 'date_transaction')
+{
+    $transactionsExpediteur = Transaction::where("numero_expediteur", $numeroClient)->get();
+    $transactionsDestinataire = Transaction::where("numero_destinataire", $numeroClient)->get();
+
+    $transactions = $transactionsExpediteur->merge($transactionsDestinataire);
+
+    // Vérifier le tri demandé et effectuer le tri en conséquence
+    switch ($triPar) {
+        case 'date_transaction':
+            $transactions = $transactions->sortByDesc('date_transaction');
+            break;
+        case 'numero_destinataire':
+            $transactions = $transactions->sortBy('numero_destinataire');
+            break;
+        case 'montant':
+            $transactions = $transactions->sortBy('montant');
+            break;
+        default:
+            // Par défaut, trier par date_transaction de manière décroissante
+            $transactions = $transactions->sortByDesc('date_transaction');
+    }
+
+    return [
+        "statutCode" => Response::HTTP_OK,
+        "message" => "Liste des transactions d'un client",
+        "transactions" => TransactionResource::collection($transactions)
+    ];
+}
+
 }

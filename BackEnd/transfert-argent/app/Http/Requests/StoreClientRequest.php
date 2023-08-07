@@ -33,17 +33,17 @@ class StoreClientRequest extends FormRequest
     public function messages():array
     {
         return [
-            "numero.required" => "le numéro de téléphone est requis !",
-            "numero.regex" => "le format du  numéro doit etre 7(7/8/0/5/6)xxxxx !",
-            "numero.unique" => "le numéro de téléphone doit être unique !",
-           "prenom.required" =>  "le nom est requis",
-           "prenom.string" =>  "le nom doit etre un chaine de caractere",
-           "nom.required" =>  "le nom est requis",
-           "nom.string" =>  "le nom doit etre un chaine de caractere",
-           "email.required" => "l'email est requis",
-           "email.email" => "le email doit etre valide",
-           "email.unique" => "ce email existe dejas",
-           "email.regex"=> "le mail doit etre sous le format exemple@aaa.fg",
+            "numero.required" => "Le numéro de téléphone est obligatoire !",
+            "numero.regex" => "Le format du  numéro doit etre 7(7/8/0/5/6)xxxxx !",
+            "numero.unique" => "Le numéro de téléphone doit être unique !",
+           "prenom.required" =>  "Le nom est obligatoire",
+           "prenom.string" =>  "Le nom doit etre un chaine de caractere",
+           "nom.required" =>  "Le nom est obligatoire",
+           "nom.string" =>  "Le nom doit etre un chaine de caractere",
+           "email.required" => "l'email est obligatoire",
+           "email.email" => "L'email doit etre valide",
+           "email.unique" => "Ce email existe dejas",
+           "email.regex"=> "L'email doit etre sous le format exemple@aaa.fg",
         ];
     }
 }

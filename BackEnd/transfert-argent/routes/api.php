@@ -25,11 +25,19 @@ Route::resource('/clients' , ClientController::class)->only("index" , "store");
 
 
 Route::apiresource('/comptes' , CompteController::class)->only("index", "store");
-Route::get('/comptes/fournisseur' , [CompteController::class , "recupereLesFournisseurs"]);
+Route::get('/comptes/bloque/{numeroCompte}' , [CompteController::class , "bloqueCompte"]);
+Route::get('/comptes/debloque/{numeroCompte}' , [CompteController::class , "debloqueCompte"]);
+Route::get('/comptes/id/{numero}' , [CompteController::class , "getIdByNumeroCompte"]);
+Route::delete('/comptes/fermer/{numeroCompte}' , [CompteController::class , "destoy"]);
+Route::post('/comptes/restaure/{numeroCompte}' , [CompteController::class , "restore"]);
+
+
 
 
 Route::post('/transactions' , [TransactionController::class , "traiterTransfertArgent"]);
 Route::get('/transactions' , [TransactionController::class , "afficheTransaction"]);
+Route::get('/transactions/client/{numeroClient}' , [TransactionController::class , "listeTransactionClient"]);
+// Route::get('/transactions/{numeroClient}/trie/{triPar}' , [TransactionController::class , "listeTransactionClientParTrie"]);
 
 Route::get('/clients/nomComplet/{numero}' , [TransactionController::class , "afficheNomComplet"]);
 Route::get('/clients/fournisseur/{numero}' , [TransactionController::class , "nomFournisseur"]);

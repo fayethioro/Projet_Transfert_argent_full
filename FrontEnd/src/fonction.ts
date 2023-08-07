@@ -1,38 +1,12 @@
 import {
-  errorFournisseurElement,
-  formExpedCompte,
-  formExpediteur,
-  transactionDiv,
-  destinataireDiv,
-  formFournisseur,
-  formDestCompte,
-  formDestinataire,
-  formMontant,
-  formTransaction,
-  prevButton,
-  nextButton,
-  precButton,
-  suivButton,
-  notif,
-  errorMessageElement,
-  prenomClient,
-  nomClient,
-  telephoneClient,
-  emailClient,
-  erreurPrenom,
-  erreurNom,
-  erreurEmail,
-  erreurNumero,
- modalClient,
- notifi
+  errorFournisseurElement, formExpedCompte, formExpediteur, transactionDiv, destinataireDiv,formFournisseur,formDestCompte,
+  formDestinataire,formMontant,formTransaction,prevButton,nextButton,precButton,suivButton,notif,errorMessageElement,prenomClient,
+  nomClient,telephoneClient,emailClient, erreurPrenom,erreurNom,erreurEmail,erreurNumero,modalClient,notifi,fournisseur,numeroClient, 
+  erreurFournisseur, erreurNumeroClient, nomCompletErreur,
 } from "./dom.js";
 
 import {
-  getNomComplet,
-  getNomCompletViaCompte,
-  getFournisseur,
-  getTransactions,
-  getClients,
+  getNomComplet,getNomCompletViaCompte,getFournisseur,getTransactions,getClients, getComptes, getBloqueCompte, getDeBloqueCompte, getFermerCompte, getTransactionsClient,
 } from "./fetch.js";
 
 export const itemsParPage = 2;
@@ -47,7 +21,10 @@ export async function gererNomExpediteur(): Promise<void> {
     // Vérifier si c'est 9 ou 12 caractères
     try {
       if (numero.length === 9) {
-        nomComplet = await getNomComplet(numero);
+        let data= await getNomComplet(numero); 
+        nomComplet = data[0];
+        nomCompletErreur.innerHTML = data[1]
+          
       } else {
         nomComplet = await getNomCompletViaCompte(numero);
       }
@@ -55,6 +32,11 @@ export async function gererNomExpediteur(): Promise<void> {
         formExpediteur.value = nomComplet;
 
         const fournisseur = await getFournisseur(numero);
+        console.log(fournisseur);
+        if (fournisseur == "WR") {
+          formFournisseur.value = "WR";
+          formFournisseur.style.pointerEvents = "none"
+        }
 
         if (transactionDiv && destinataireDiv) {
           transactionDiv.classList.remove("om", "wv", "wr", "cb");
@@ -84,7 +66,7 @@ export async function gererNomDestinataire() {
       const nomComplet = await getNomComplet(numero);
 
       if (nomComplet) {
-        formDestinataire.value = nomComplet;
+        formDestinataire.value = nomComplet[0];
       } else {
         formDestinataire.value = "Le numero invalide";
         formDestinataire.style.color = "red";
@@ -139,13 +121,19 @@ export async function ajouterTransaction(event: Event) {
     }
     const data = await response.json();
 
+
+    console.log(data);
+    
     if (data.error) {
       errorMessageElement.style.display = "block";
       errorMessageElement.textContent = data.error;
     } else if (data.fournisseurError) {
       errorFournisseurElement.style.display = "block";
       errorFournisseurElement.textContent = data.fournisseurError;
-    } else {
+    } else if (data.retraitError) {
+      nomCompletErreur.textContent = data.retraitError
+    }
+    else {
       errorMessageElement.style.display = "none";
       afficherNotif(data.message);
       afficherTransactions();
@@ -224,11 +212,47 @@ export async function afficherClients() {
               <td>${client.numero}</td>
               <td>${client.email}</td>
               <td>
-                <a href="#editEmployeeModal" class="edit" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
-                <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Delete">&#xE872;</i></a>
+                <a href="#exampleModal" class="detail" data-toggle="modal"><i class="fa-solid fa-circle-info" style="color: #0000ff;" data-toggle="tooltip" title="Detail Transaction"></i></a>
+                <a href="#editEmployeeModal" class="edit" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Modfier">&#xE254;</i></a>
+                <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Supprimer">&#xE872;</i></a>
               </td>
               `;
     clientsDiv.appendChild(transactionDiv);
+    
+    const numero= client.numero;
+
+  const detail = transactionDiv.querySelector(".detail") as HTMLElement;
+
+    detail.addEventListener("click", async () => {
+      // console.log(numero);
+      try {
+    const transactionClientDiv = document.querySelector(".list_transaction_client") as HTMLElement;
+
+        const transactionsClients = await getTransactionsClient(numero);
+
+        console.log( "les transaction", transactionsClients);
+          const startIndex = 0;
+         const endIndex =transactionsClients.length ;
+         console.log("longueur tableau",endIndex);
+         
+          for (let i = startIndex; i < endIndex; i++) {
+
+    const transactionClient = transactionsClients[i];
+    const transactionDiv = document.createElement("tr");
+    transactionDiv.innerHTML = `
+              <td>${transactionClient.type_transaction}</td>
+              <td>${transactionClient.numero_expediteur}</td>
+              <td>${transactionClient.numero_destinataire}</td>
+              <td>${transactionClient.montant}</td>
+              <td>${transactionClient.code}</td>
+              <td>${transactionClient.date_transaction}</td>
+              `
+    transactionClientDiv.appendChild(transactionDiv); 
+  }  
+      } catch (error) {
+        console.error("Une erreur s'est produite :", error);
+      }
+    });
   }
 
   precButton.disabled = pageCourant === 1;
@@ -295,6 +319,7 @@ export async function ajouterClient(event: Event) {
           } else {
               throw new Error("La requête a échoué.");
           }
+          return;
       }
 
       const data = await response.json();
@@ -320,4 +345,139 @@ export function afficherNotifi(message: string) {
     notifi.style.display = "none";
   }, 5000);
 }
+
+export async function creerCompte(event: Event) {
+  event.preventDefault();
+   
+   const fournisseurCompte = fournisseur.value;
+   const numeroClientCompte = numeroClient.value;
+
+   console.log(fournisseurCompte , numeroClientCompte);
+  
+  try {
+      const response = await fetch("http://127.0.0.1:8000/transfert-api/comptes", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+          },
+          body: JSON.stringify({
+              fournisseur: fournisseurCompte,
+              numero_client: numeroClientCompte,
+          })
+      });
+      if (!response.ok) {
+          const errorData = await response.json();
+          if (errorData.errors) {
+              for (const champ in errorData.errors) {
+                  const errorMessage = errorData.errors[champ][0];      
+                  console.log(`Erreur dans le champ "${champ}": ${errorMessage}`);
+
+                  if(champ === "fournisseur"){
+                    erreurFournisseur.innerHTML = errorMessage
+                  }
+                  if(champ === "numero_client"){
+                    erreurNumeroClient.innerHTML= errorMessage
+                  }
+              }
+          } 
+          return;
+      }
+      const data = await response.json();
+      if (data.message) {
+        erreurNumeroClient.innerHTML= data.message
+      }
+      else{
+        erreurFournisseur.innerHTML = "";
+        erreurNumeroClient.innerHTML= "";
+        alert ("succes");
+        window.location.reload();
+
+      }
+      
+  } catch (error: any) {
+      console.error("Erreur lors de la transaction :", error);
+  }
+}
+
+export async function afficherComptes() {
+  const comptesDiv = document.querySelector(".list_compte") as HTMLElement;
+
+  comptesDiv.innerHTML = "";
+
+  const comptes = await getComptes();
+
+  const totalItems = comptes.length;
+  console.log(totalItems);
+  const totalPages = Math.ceil(totalItems / itemsParPageClient);
+
+  if (comptes.length === 0) {
+    comptesDiv.innerHTML = `<h3 class="text-danger">Aucun Client</h3>`;
+    precButton.style.display = "none";
+    suivButton.style.display = "none";
+    return;
+  }
+
+  const startIndex = (pageCourant - 1) * itemsParPageClient;
+  const endIndex = Math.min(startIndex + itemsParPageClient, totalItems);
+
+  for (let i = startIndex; i < endIndex; i++) {
+    const compte = comptes[i];
+    const transactionDiv = document.createElement("tr");
+    transactionDiv.innerHTML = `
+              <td class="compte-numero">${compte.numero_compte}</td>
+              <td>${compte.fournisseur}</td>
+              <td>${compte.solde} fcfa</td>
+              <td>${compte.numero_client}</td>
+              <td>${compte.etat}</td>
+              <td>
+              <a href="#" class="debloque" data-toggle="modal"><i class="fa-solid fa-lock-open" data-toggle="tooltip" title="débloqué" style="color: #008000;"></i></a>
+              <a href="#" class="bloque" data-toggle="modal"><i class="fa-solid fa-lock"  data-toggle="tooltip" title="bloqué" style="color: #0000ff;"></i></a>
+                <a href="#" class="delete" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Fermer Compte">&#xE872;</i></a>
+              </td>
+              `;
+    comptesDiv.appendChild(transactionDiv);
+
+  const bloque = transactionDiv.querySelector(".bloque") as HTMLElement;
+  const debloque = transactionDiv.querySelector(".debloque") as HTMLElement;
+  const fermerCompte = transactionDiv.querySelector(".delete") as HTMLElement;
+
+    const numeroCompte = compte.numero_compte;
+
+    bloque.addEventListener("click", async () => {
+      try {
+         await getBloqueCompte(numeroCompte);
+        window.location.reload();
+      } catch (error) {
+        console.error("Une erreur s'est produite :", error);
+      }
+    });
+
+    debloque.addEventListener("click", async () => {
+      try {
+         await getDeBloqueCompte(numeroCompte);
+        window.location.reload();
+      } catch (error) {
+        console.error("Une erreur s'est produite :", error);
+      }
+    });
+
+    fermerCompte.addEventListener("click", async () => {
+      try {
+       await getFermerCompte(numeroCompte);
+        window.location.reload();
+      } catch (error) {
+        console.error("Une erreur s'est produite :", error);
+      }
+    });
+  }
+  precButton.disabled = pageCourant === 1;
+  suivButton.disabled = pageCourant === totalPages;
+}
+
+
+
+
+
+
 

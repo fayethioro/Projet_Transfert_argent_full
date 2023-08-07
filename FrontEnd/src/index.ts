@@ -56,7 +56,12 @@ prevButton?.addEventListener('click', () => {
 
     if (selectedFournisseur === 'CB') {
       optionTransfertImmediat.style.display = 'block';
-    } else {
+    }else if (selectedFournisseur === 'WR') {
+     formTransaction.value = "1";
+    formTransaction.style.pointerEvents = "none";
+    alert("bonjour")
+    }
+     else {
       optionTransfertImmediat.style.display = 'none'; 
     }
   });

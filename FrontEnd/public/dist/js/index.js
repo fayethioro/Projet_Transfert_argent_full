@@ -29,6 +29,11 @@ formFournisseur === null || formFournisseur === void 0 ? void 0 : formFournisseu
     if (selectedFournisseur === 'CB') {
         optionTransfertImmediat.style.display = 'block';
     }
+    else if (selectedFournisseur === 'WR') {
+        formTransaction.value = "1";
+        formTransaction.style.pointerEvents = "none";
+        alert("bonjour");
+    }
     else {
         optionTransfertImmediat.style.display = 'none';
     }

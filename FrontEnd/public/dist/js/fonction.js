@@ -7,8 +7,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { errorFournisseurElement, formExpedCompte, formExpediteur, transactionDiv, destinataireDiv, formFournisseur, formDestCompte, formDestinataire, formMontant, formTransaction, prevButton, nextButton, precButton, suivButton, notif, errorMessageElement, prenomClient, nomClient, telephoneClient, emailClient, erreurPrenom, erreurNom, erreurEmail, erreurNumero, modalClient, notifi } from "./dom.js";
-import { getNomComplet, getNomCompletViaCompte, getFournisseur, getTransactions, getClients, } from "./fetch.js";
+import { errorFournisseurElement, formExpedCompte, formExpediteur, transactionDiv, destinataireDiv, formFournisseur, formDestCompte, formDestinataire, formMontant, formTransaction, prevButton, nextButton, precButton, suivButton, notif, errorMessageElement, prenomClient, nomClient, telephoneClient, emailClient, erreurPrenom, erreurNom, erreurEmail, erreurNumero, modalClient, notifi, fournisseur, numeroClient, erreurFournisseur, erreurNumeroClient, nomCompletErreur, } from "./dom.js";
+import { getNomComplet, getNomCompletViaCompte, getFournisseur, getTransactions, getClients, getComptes, getBloqueCompte, getDeBloqueCompte, getFermerCompte, getTransactionsClient, } from "./fetch.js";
 export const itemsParPage = 2;
 export const itemsParPageClient = 6;
 export let pageCourant = 1;
@@ -20,7 +20,9 @@ export function gererNomExpediteur() {
         if (numero.length === 9 || numero.length === 12) {
             try {
                 if (numero.length === 9) {
-                    nomComplet = yield getNomComplet(numero);
+                    let data = yield getNomComplet(numero);
+                    nomComplet = data[0];
+                    nomCompletErreur.innerHTML = data[1];
                 }
                 else {
                     nomComplet = yield getNomCompletViaCompte(numero);
@@ -28,6 +30,11 @@ export function gererNomExpediteur() {
                 if (nomComplet) {
                     formExpediteur.value = nomComplet;
                     const fournisseur = yield getFournisseur(numero);
+                    console.log(fournisseur);
+                    if (fournisseur == "WR") {
+                        formFournisseur.value = "WR";
+                        formFournisseur.style.pointerEvents = "none";
+                    }
                     if (transactionDiv && destinataireDiv) {
                         transactionDiv.classList.remove("om", "wv", "wr", "cb");
                         destinataireDiv.classList.remove("om", "wv", "wr", "cb");
@@ -58,7 +65,7 @@ export function gererNomDestinataire() {
             try {
                 const nomComplet = yield getNomComplet(numero);
                 if (nomComplet) {
-                    formDestinataire.value = nomComplet;
+                    formDestinataire.value = nomComplet[0];
                 }
                 else {
                     formDestinataire.value = "Le numero invalide";
@@ -108,6 +115,7 @@ export function ajouterTransaction(event) {
                 throw new Error("La requête a échoué.");
             }
             const data = yield response.json();
+            console.log(data);
             if (data.error) {
                 errorMessageElement.style.display = "block";
                 errorMessageElement.textContent = data.error;
@@ -115,6 +123,9 @@ export function ajouterTransaction(event) {
             else if (data.fournisseurError) {
                 errorFournisseurElement.style.display = "block";
                 errorFournisseurElement.textContent = data.fournisseurError;
+            }
+            else if (data.retraitError) {
+                nomCompletErreur.textContent = data.retraitError;
             }
             else {
                 errorMessageElement.style.display = "none";
@@ -185,11 +196,40 @@ export function afficherClients() {
               <td>${client.numero}</td>
               <td>${client.email}</td>
               <td>
-                <a href="#editEmployeeModal" class="edit" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
-                <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Delete">&#xE872;</i></a>
+                <a href="#exampleModal" class="detail" data-toggle="modal"><i class="fa-solid fa-circle-info" style="color: #0000ff;" data-toggle="tooltip" title="Detail Transaction"></i></a>
+                <a href="#editEmployeeModal" class="edit" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Modfier">&#xE254;</i></a>
+                <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Supprimer">&#xE872;</i></a>
               </td>
               `;
             clientsDiv.appendChild(transactionDiv);
+            const numero = client.numero;
+            const detail = transactionDiv.querySelector(".detail");
+            detail.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const transactionClientDiv = document.querySelector(".list_transaction_client");
+                    const transactionsClients = yield getTransactionsClient(numero);
+                    console.log("les transaction", transactionsClients);
+                    const startIndex = 0;
+                    const endIndex = transactionsClients.length;
+                    console.log("longueur tableau", endIndex);
+                    for (let i = startIndex; i < endIndex; i++) {
+                        const transactionClient = transactionsClients[i];
+                        const transactionDiv = document.createElement("tr");
+                        transactionDiv.innerHTML = `
+              <td>${transactionClient.type_transaction}</td>
+              <td>${transactionClient.numero_expediteur}</td>
+              <td>${transactionClient.numero_destinataire}</td>
+              <td>${transactionClient.montant}</td>
+              <td>${transactionClient.code}</td>
+              <td>${transactionClient.date_transaction}</td>
+              `;
+                        transactionClientDiv.appendChild(transactionDiv);
+                    }
+                }
+                catch (error) {
+                    console.error("Une erreur s'est produite :", error);
+                }
+            }));
         }
         precButton.disabled = pageCourant === 1;
         suivButton.disabled = pageCourant === totalPages;
@@ -250,8 +290,10 @@ export function ajouterClient(event) {
                 else {
                     throw new Error("La requête a échoué.");
                 }
+                return;
             }
             const data = yield response.json();
+            console.log(data);
             modalClient.style.display = "none";
             afficherNotifi("succes");
             afficherClients();
@@ -268,4 +310,125 @@ export function afficherNotifi(message) {
     formMontant.innerHTML = "";
     formDestCompte.innerHTML = "";
     formTransaction.innerHTML = "";
+    setTimeout(() => {
+        notifi.style.display = "none";
+    }, 5000);
+}
+export function creerCompte(event) {
+    return __awaiter(this, void 0, void 0, function* () {
+        event.preventDefault();
+        const fournisseurCompte = fournisseur.value;
+        const numeroClientCompte = numeroClient.value;
+        console.log(fournisseurCompte, numeroClientCompte);
+        try {
+            const response = yield fetch("http://127.0.0.1:8000/transfert-api/comptes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                body: JSON.stringify({
+                    fournisseur: fournisseurCompte,
+                    numero_client: numeroClientCompte,
+                })
+            });
+            if (!response.ok) {
+                const errorData = yield response.json();
+                if (errorData.errors) {
+                    for (const champ in errorData.errors) {
+                        const errorMessage = errorData.errors[champ][0];
+                        console.log(`Erreur dans le champ "${champ}": ${errorMessage}`);
+                        if (champ === "fournisseur") {
+                            erreurFournisseur.innerHTML = errorMessage;
+                        }
+                        if (champ === "numero_client") {
+                            erreurNumeroClient.innerHTML = errorMessage;
+                        }
+                    }
+                }
+                return;
+            }
+            const data = yield response.json();
+            if (data.message) {
+                erreurNumeroClient.innerHTML = data.message;
+            }
+            else {
+                erreurFournisseur.innerHTML = "";
+                erreurNumeroClient.innerHTML = "";
+                alert("succes");
+                window.location.reload();
+            }
+        }
+        catch (error) {
+            console.error("Erreur lors de la transaction :", error);
+        }
+    });
+}
+export function afficherComptes() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const comptesDiv = document.querySelector(".list_compte");
+        comptesDiv.innerHTML = "";
+        const comptes = yield getComptes();
+        const totalItems = comptes.length;
+        console.log(totalItems);
+        const totalPages = Math.ceil(totalItems / itemsParPageClient);
+        if (comptes.length === 0) {
+            comptesDiv.innerHTML = `<h3 class="text-danger">Aucun Client</h3>`;
+            precButton.style.display = "none";
+            suivButton.style.display = "none";
+            return;
+        }
+        const startIndex = (pageCourant - 1) * itemsParPageClient;
+        const endIndex = Math.min(startIndex + itemsParPageClient, totalItems);
+        for (let i = startIndex; i < endIndex; i++) {
+            const compte = comptes[i];
+            const transactionDiv = document.createElement("tr");
+            transactionDiv.innerHTML = `
+              <td class="compte-numero">${compte.numero_compte}</td>
+              <td>${compte.fournisseur}</td>
+              <td>${compte.solde} fcfa</td>
+              <td>${compte.numero_client}</td>
+              <td>${compte.etat}</td>
+              <td>
+              <a href="#" class="debloque" data-toggle="modal"><i class="fa-solid fa-lock-open" data-toggle="tooltip" title="débloqué" style="color: #008000;"></i></a>
+              <a href="#" class="bloque" data-toggle="modal"><i class="fa-solid fa-lock"  data-toggle="tooltip" title="bloqué" style="color: #0000ff;"></i></a>
+                <a href="#" class="delete" data-toggle="modal"><i class="material-icons" data-toggle="tooltip" title="Fermer Compte">&#xE872;</i></a>
+              </td>
+              `;
+            comptesDiv.appendChild(transactionDiv);
+            const bloque = transactionDiv.querySelector(".bloque");
+            const debloque = transactionDiv.querySelector(".debloque");
+            const fermerCompte = transactionDiv.querySelector(".delete");
+            const numeroCompte = compte.numero_compte;
+            bloque.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    yield getBloqueCompte(numeroCompte);
+                    window.location.reload();
+                }
+                catch (error) {
+                    console.error("Une erreur s'est produite :", error);
+                }
+            }));
+            debloque.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    yield getDeBloqueCompte(numeroCompte);
+                    window.location.reload();
+                }
+                catch (error) {
+                    console.error("Une erreur s'est produite :", error);
+                }
+            }));
+            fermerCompte.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    yield getFermerCompte(numeroCompte);
+                    window.location.reload();
+                }
+                catch (error) {
+                    console.error("Une erreur s'est produite :", error);
+                }
+            }));
+        }
+        precButton.disabled = pageCourant === 1;
+        suivButton.disabled = pageCourant === totalPages;
+    });
 }
