@@ -208,10 +208,8 @@ export function afficherClients() {
                 try {
                     const transactionClientDiv = document.querySelector(".list_transaction_client");
                     const transactionsClients = yield getTransactionsClient(numero);
-                    console.log("les transaction", transactionsClients);
                     const startIndex = 0;
                     const endIndex = transactionsClients.length;
-                    console.log("longueur tableau", endIndex);
                     for (let i = startIndex; i < endIndex; i++) {
                         const transactionClient = transactionsClients[i];
                         const transactionDiv = document.createElement("tr");

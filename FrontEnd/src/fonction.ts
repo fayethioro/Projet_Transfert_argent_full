@@ -229,11 +229,8 @@ export async function afficherClients() {
     const transactionClientDiv = document.querySelector(".list_transaction_client") as HTMLElement;
 
         const transactionsClients = await getTransactionsClient(numero);
-
-        console.log( "les transaction", transactionsClients);
           const startIndex = 0;
          const endIndex =transactionsClients.length ;
-         console.log("longueur tableau",endIndex);
          
           for (let i = startIndex; i < endIndex; i++) {
 
@@ -248,6 +245,7 @@ export async function afficherClients() {
               <td>${transactionClient.date_transaction}</td>
               `
     transactionClientDiv.appendChild(transactionDiv); 
+    // window.location.reload();
   }  
       } catch (error) {
         console.error("Une erreur s'est produite :", error);
@@ -445,6 +443,8 @@ export async function afficherComptes() {
     const numeroCompte = compte.numero_compte;
 
     bloque.addEventListener("click", async () => {
+  // event.preventDefault();
+
       try {
          await getBloqueCompte(numeroCompte);
         window.location.reload();
