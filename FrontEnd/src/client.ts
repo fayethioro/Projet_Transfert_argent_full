@@ -1,5 +1,6 @@
 import {
     afficherClients,
+    afficherClientsParTrie,
     ajouterClient
 }from './fonction.js'
 
@@ -11,21 +12,21 @@ import {
   } from './dom.js';
   let pageCourant = 1;
 
-window.addEventListener('load', () =>afficherClients()); 
+window.addEventListener('load', () =>afficherClientsParTrie()); 
 
-precButton?.addEventListener('click', () => {
-    if (pageCourant > 1) {
-      pageCourant--;
-      afficherClients();
-    }
-  });
+// precButton?.addEventListener('click', () => {
+//     if (pageCourant > 1) {
+//       pageCourant--;
+//       afficherClients();
+//     }
+//   });
   
-  suivButton?.addEventListener('click', () => {
-    if (pageCourant < 100) {
-      pageCourant++;
-      afficherClients();
-    }
-  });
+//   suivButton?.addEventListener('click', () => {
+//     if (pageCourant < 100) {
+//       pageCourant++;
+//       afficherClients();
+//     }
+  // });
 
 ajouter?.addEventListener('click', ajouterClient);
 

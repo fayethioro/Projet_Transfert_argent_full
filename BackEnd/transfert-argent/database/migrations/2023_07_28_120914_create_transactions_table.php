@@ -13,13 +13,15 @@ return new class extends Migration
      * TRANSFERT = 3
      * TRANSFERT AVEC CODE = 4
      * TRANSFERT IMMEDIAT = 5
+     * TRANSFERT ANNULER = 6
+     * Retrait avec code = 6
      */
     public function up(): void
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->enum('type_transaction',[ 1 , 2 , 3 , 4 , 5]);
+            $table->enum('type_transaction',[ 1 , 2 , 3 , 4 , 5, 6 , 7]);
             $table->integer('montant');
             $table->string('code', 35)->nullable();
             $table->dateTime('date_transaction');
@@ -28,7 +30,7 @@ return new class extends Migration
             $table->string('numero_destinataire')->nullable()->index();
             $table->foreign('numero_destinataire')->references('numero')->on('clients');
         });
-    }     
+    }
 
     /**
      * Reverse the migrations.

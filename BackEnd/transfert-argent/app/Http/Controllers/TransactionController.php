@@ -8,6 +8,7 @@ use App\Models\Compte;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Carbon\Carbon;
 
 class TransactionController extends Controller
 {
@@ -21,12 +22,17 @@ class TransactionController extends Controller
         $montant = $request->montant;
         $numeroExpediteur = $request->expediteur;
         $numeroDestinataire = $request->destinataire;
+        $codeSaisie = $request->codeSaisie;
 
         $destinataireCompte = Compte::where('numero_client', $numeroDestinataire)->get()->first();
 
         if ($typeTransfert === 2) {
 
             return $this->traiterRetrait($typeTransfert, $numeroExpediteur, $montant);
+        }
+        if ($typeTransfert === 7) {
+
+            return $this->verifierRetraitAvecCode($typeTransfert , $codeSaisie , $numeroExpediteur, $montant);
         }
         if ($destinataireCompte) {
             $validationMontant = $this->validerMontantDepot($destinataireCompte, $montant);
@@ -61,13 +67,13 @@ class TransactionController extends Controller
         if ((($destinataireCompte->fournisseur === "OM") || ($destinataireCompte->fournisseur === "WV"))
             && ($montant < 500 || $montant > 1000000)
         ) {
-            return ["error" =>"Le montant de dépôt pour Orange Money ou Wave doit être compris entre 500 et 1.000.000"];
+            return ["error" => "Le montant de dépôt pour Orange Money ou Wave doit être compris entre 500 et 1.000.000"];
         }
         if ($destinataireCompte->fournisseur === "WR" && ($montant < 1000 || $montant > 1000000)) {
-            return ["error" =>"Le montant de dépôt pour Wari doit être compris entre 1000 et 1.000.000"];
+            return ["error" => "Le montant de dépôt pour Wari doit être compris entre 1000 et 1.000.000"];
         }
         if ($destinataireCompte->fournisseur === "CB" && $montant < 10000) {
-            return ["error"=>"Le montant de dépôt pour les comptes Bancaire doit être supérieur à 10000"];
+            return ["error" => "Le montant de dépôt pour les comptes Bancaire doit être supérieur à 10000"];
         }
 
         return null; // Aucune erreur de montant de dépôt
@@ -90,22 +96,23 @@ class TransactionController extends Controller
     {
         $numeroClient = $numero;
 
-       if ($this->estClient($numeroClient)) {
-           $client = Client::where('numero', $numeroClient)->get()->first();
-           if (!$this->clientPossedeCompte($numeroClient)) {
+        if ($this->estClient($numeroClient)) {
+            $client = Client::where('numero', $numeroClient)->get()->first();
+            if (!$this->clientPossedeCompte($numeroClient)) {
+                return [
+                    "message" => "Client ne possede pas de compte on peut faire que de dépot ou de retrait avec code",
+                    "NomComplet" => "{$client->prenom} {$client->nom} "
+                ];
+            }
             return [
-                "message" => "Client ne possede pas de compte on peut faire que de dépot",
+                "message" => "",
                 "NomComplet" => "{$client->prenom} {$client->nom} "
-               ];
-           }
-           return [
-            "message" =>"",
-            "NomComplet" => "{$client->prenom} {$client->nom} "
-           ];
-       }
-       return [
-        "message" => "le numero n'existe pas",
-        "error" =>"le numero n'existe pas"];
+            ];
+        }
+        return [
+            "message" => "le numero n'existe pas",
+            "error" => "le numero n'existe pas"
+        ];
     }
 
     public function rechercherParCompte($numero)
@@ -114,12 +121,12 @@ class TransactionController extends Controller
         $compte = Compte::where('numero_compte', $numeroCompte)->get()->first();
         if ($compte) {
             $numeroClient = $compte->numero_client;
-           $client = Client::where('numero', $numeroClient)->get()->first();
-           return [
-            "NomComplet" => "{$client->prenom} {$client->nom} "
-           ];
+            $client = Client::where('numero', $numeroClient)->get()->first();
+            return [
+                "NomComplet" => "{$client->prenom} {$client->nom} "
+            ];
         }
-       return ["error" =>"le numero de compte n'existe pas"];
+        return ["error" => "le numero de compte n'existe pas"];
     }
 
     public function nomFournisseur($numero)
@@ -127,15 +134,15 @@ class TransactionController extends Controller
         $numeroClient = $numero;
 
         $fournisseur = Compte::where('numero_client', $numeroClient)
-                                ->orWhere('numero_compte', $numeroClient)
-                               ->first();
+            ->orWhere('numero_compte', $numeroClient)
+            ->first();
         if ($fournisseur) {
-            return ["fournisseur" =>$fournisseur->fournisseur];
+            return ["fournisseur" => $fournisseur->fournisseur];
         }
         if ($this->estClient($numeroClient)) {
-            return ["fournisseur" =>"WR"];
+            return ["fournisseur" => "WR"];
         }
-        return ["error" =>"le numero n'existe pas"];
+        return ["error" => "le numero n'existe pas"];
     }
     /**
      * generer code
@@ -196,9 +203,9 @@ class TransactionController extends Controller
     {
         $expediteurCompte = Compte::where('numero_client', $numeroExpediteur)->get()->first();
 
-        if ($expediteurCompte && $expediteurCompte->etat !== 0 ) {
+        if ($expediteurCompte && $expediteurCompte->etat !== 0) {
             if ($expediteurCompte->solde < $montant) {
-                return  ["error"=>"Votre solde est insuffisant. Vous ne pouvez pas faire de retrait"];
+                return  ["error" => "Votre solde est insuffisant. Vous ne pouvez pas faire de retrait"];
             }
             $transactionData = [
                 'type_transaction' => $typeTransfert,
@@ -208,6 +215,7 @@ class TransactionController extends Controller
                 'numero_destinataire' => null,
             ];
             $transaction = new Transaction($transactionData);
+            $transaction->etat_transaction = 2;
             $transaction->save();
 
             $expediteurCompte->solde -= $montant;
@@ -237,7 +245,7 @@ class TransactionController extends Controller
             return  "Fournisseur non reconnu.";
         }
         if ($expediteurCompte->solde < ($montant + $frais)) {
-            return  ["error"=>"Votre solde est insuffisant. Vous ne pouvez faire ni de depot ni de transfert"];
+            return  ["error" => "Votre solde est insuffisant. Vous ne pouvez faire ni de depot ni de transfert"];
         }
 
         $expediteurCompte->solde -= ($montant + $frais);
@@ -281,9 +289,9 @@ class TransactionController extends Controller
                     }
                     return $result;
                 }
-                return ["fournisseurError"=>"Le compte est bloque il ne peut faire  que de depot ou transfert entrant"]; ;
+                return ["fournisseurError" => "Le compte est bloque il ne peut faire  que de depot ou transfert entrant"];;
             }
-            return ["fournisseurError"=>"Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB)."];
+            return ["fournisseurError" => "Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB)."];
         }
         return "Les deux clients doivent posséder un compte.";
     }
@@ -316,7 +324,7 @@ class TransactionController extends Controller
             }
             return $result;
         }
-        return ["fournisseurError"=>"L'expediteur doit posséder un compte et le le numero du destinataire doit etre valide"];
+        return ["fournisseurError" => "L'expediteur doit posséder un compte et le le numero du destinataire doit etre valide"];
     }
 
 
@@ -353,19 +361,23 @@ class TransactionController extends Controller
                 }
                 return $result;
             }
-            return ["fournisseurError"=>"Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB)."];
+            return ["fournisseurError" => "Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB)."];
         }
         return "Les deux clients doivent posséder un compte.";
     }
 
-    public function afficheTransaction(){
+    public function afficheTransaction()
+    {
 
         $transactions = Transaction::all();
+        $transactions = $transactions->sortByDesc('date_transaction');
+
         return ["transaction" => TransactionResource::collection($transactions)];
     }
 
 
-    public function listeTransactionClient($numeroClient){
+    public function listeTransactionClient($numeroClient)
+    {
 
         $transactionsExpediteur = Transaction::where("numero_expediteur", $numeroClient)->get();
         $transactionsDestinataire = Transaction::where("numero_destinataire", $numeroClient)->get();
@@ -374,41 +386,137 @@ class TransactionController extends Controller
 
         return [
             "statutCode" => Response::HTTP_OK,
-            "message" =>"listes des transaction d'un client",
+            "message" => "listes des transaction d'un client",
             "transactionsclients" => TransactionResource::collection($transactions)
+        ];
+    }
+
+
+    public function listeTransactionClientParTrie($numeroClient, $critere)
+    {
+
+        $transactionsExpediteur = Transaction::where("numero_expediteur", $numeroClient)->get();
+        $transactionsDestinataire = Transaction::where("numero_destinataire", $numeroClient)->get();
+
+        $transactions = $transactionsExpediteur->merge($transactionsDestinataire);
+
+        switch ($critere) {
+            case 'date_transaction':
+                $transactions = $transactions->sortBy('date_transaction');
+                break;
+            case 'numero_destinataire':
+                $transactions = $transactions->sortBy('numero_destinataire');
+                break;
+            case 'montant':
+                $transactions = $transactions->sortBy('montant');
+                break;
+            default:
+                // Par défaut, trier par date_transaction de manière décroissante
+                $transactions = $transactions->sortByDesc('date_transaction');
+        }
+
+        return [
+            "statutCode" => Response::HTTP_OK,
+            "message" => "Liste des transactions d'un client",
+            "transactions" => TransactionResource::collection($transactions)
+        ];
+    }
+
+
+
+    public function annulerDerniereTransaction($numeroClient)
+    {
+        $derniereTransaction = Transaction::where('numero_expediteur', $numeroClient)
+            ->orderByDesc('date_transaction')
+            ->first();
+
+        if (!$derniereTransaction ) {
+            return [
+                "error" => "Seule la dernière transaction du client peut être annulée.",
+                "transaction" => ""
+            ];
+        }
+
+
+        if ($derniereTransaction->type_transaction === "2" || $derniereTransaction->etat_transaction != "1" ) {
+            return [
+                "error" => "Seules les transactions de dépôt ou de transfert peuvent être annulées",
+                "transaction" => ""
+
+            ];
+        }
+
+        $dateDerniereTransaction = Carbon::parse($derniereTransaction->date_transaction);
+        $maintenant = Carbon::now();
+
+        if ($dateDerniereTransaction->diffInDays($maintenant) > 0 ) {
+            return [
+                "error" => "La dernière transaction ne peut plus être annulée car elle a plus d'un jour",
+                "transaction" => ""
+
+            ];
+        }
+
+        if($derniereTransaction->type_transaction === "1")
+        {
+            $derniereTransaction->etat_transaction = "3";
+            $derniereTransaction->type_transaction = "6";
+            $derniereTransaction->save();
+
+            return [
+                "message" => "La dernière transaction a été annulée avec succès",
+                "transaction" => ""
+            ];
+        }
+
+        $expediteurCompte = Compte::where('numero_client', $derniereTransaction->numero_expediteur)->first();
+        $destinataireCompte = Compte::where('numero_client', $derniereTransaction->numero_destinataire)->first();
+
+        $derniereTransaction->etat_transaction = "3";
+        $derniereTransaction->type_transaction = "6";
+
+        $expediteurCompte->solde =$expediteurCompte->solde + $derniereTransaction->montant;
+        $destinataireCompte->solde = $destinataireCompte->solde - $derniereTransaction->montant;
+        $derniereTransaction->save();
+        $expediteurCompte->save();
+        $destinataireCompte->save();
+
+
+        return [
+            "message" => "La dernière transaction a été annulée avec succès",
+            "transaction" => $derniereTransaction,
+            "destinataire" =>$destinataireCompte,
+            "expediteur" =>$expediteurCompte
         ] ;
     }
 
 
-    public function listeTransactionClientParTrie($numeroClient, $triPar = 'date_transaction')
+
+public function verifierRetraitAvecCode($typeTransfert , $codeSaisi , $numeroExpediteur, $montant)
 {
-    $transactionsExpediteur = Transaction::where("numero_expediteur", $numeroClient)->get();
-    $transactionsDestinataire = Transaction::where("numero_destinataire", $numeroClient)->get();
 
-    $transactions = $transactionsExpediteur->merge($transactionsDestinataire);
-
-    // Vérifier le tri demandé et effectuer le tri en conséquence
-    switch ($triPar) {
-        case 'date_transaction':
-            $transactions = $transactions->sortByDesc('date_transaction');
-            break;
-        case 'numero_destinataire':
-            $transactions = $transactions->sortBy('numero_destinataire');
-            break;
-        case 'montant':
-            $transactions = $transactions->sortBy('montant');
-            break;
-        default:
-            // Par défaut, trier par date_transaction de manière décroissante
-            $transactions = $transactions->sortByDesc('date_transaction');
+    $transaction = Transaction::where('code', $codeSaisi)
+                                ->where('numero_expediteur', $numeroExpediteur,)
+                                ->first();
+    if (!$transaction) {
+        return ['retraitError' => 'Code ou numero invalide.'];
     }
 
-    return [
-        "statutCode" => Response::HTTP_OK,
-        "message" => "Liste des transactions d'un client",
-        "transactions" => TransactionResource::collection($transactions)
-    ];
-}
+    if ($transaction->etat_transaction === "2") {
+        return ['retraitError' => 'Cette transaction a déjà été retirée.'];
+    }
+    if ($transaction->montant !==  $montant) {
+        return ['error' => 'Le montant est incorrect'];
+    }
+    $transaction->etat_transaction = '2';
+    $transaction->type_transaction = $typeTransfert;
+    $transaction->save();
 
+
+    return [
+        'message' => 'Retrait effectué avec succès.',
+           "transaction" => $transaction
+            ];
+}
 
 }

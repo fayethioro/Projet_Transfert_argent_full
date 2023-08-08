@@ -9,6 +9,8 @@ export const transactionDiv = document.querySelector('.transaction-div');
 export const destinataireDiv = document.querySelector('.destinataire-div');
 export const formFournisseur = document.getElementById('form_fournisseur') as HTMLSelectElement;
 export const nomCompletErreur = document.querySelector('.nom_complet') as HTMLElement;
+export const formCodeRetrait = document.querySelector('.code_retrait') as HTMLInputElement;
+export const formMontantRetrait = document.querySelector('.montant_retrait') as HTMLInputElement;
 
 
 export const formDestCompte = document.getElementById('form_dest_compte') as HTMLInputElement;
@@ -26,6 +28,7 @@ export const formTransaction = document.getElementById('form_transaction') as HT
 export const notif = document.querySelector('.notif') as HTMLElement;
 export const dest = document.querySelector('.dest') as HTMLElement;
 export const optionTransfertImmediat = document.querySelector('.hidden') as HTMLElement
+export const optionRetraitCode = document.querySelector('.cache') as HTMLElement
 
 export const transactionForm = document.getElementById('transactionForm');
 export const errorMessageElement = document.getElementById('error-message') as HTMLElement;
@@ -51,6 +54,12 @@ export const numeroClient = document.getElementById('numero_client') as HTMLInpu
 export const creeCompte = document.getElementById('ajouter_compte') as HTMLElement;
 export const erreurFournisseur = document.querySelector('.erreur_fournisseur') as HTMLElement;
 export const erreurNumeroClient = document.querySelector('.erreur_client') as HTMLElement;
+export const TitreClient = document.querySelector('.titre_client') as HTMLElement;
+
+export const annuler = document.querySelector('.retrait') as HTMLElement;
+
+
+
 
 
 

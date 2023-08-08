@@ -1,4 +1,4 @@
-import { info, modalTransaction, modalFerme, formExpedCompte, formFournisseur, formDestCompte, formTransaction, prevButton, nextButton, dest, optionTransfertImmediat, transactionForm, } from './dom.js';
+import { info, modalTransaction, modalFerme, formExpedCompte, formFournisseur, formDestCompte, formTransaction, prevButton, nextButton, dest, optionTransfertImmediat, transactionForm, annuler, } from './dom.js';
 import { gererNomExpediteur, gererNomDestinataire, ajouterTransaction, afficherTransactions, } from './fonction.js';
 let pageCourant = 1;
 formExpedCompte === null || formExpedCompte === void 0 ? void 0 : formExpedCompte.addEventListener('input', gererNomExpediteur);
@@ -22,6 +22,12 @@ nextButton === null || nextButton === void 0 ? void 0 : nextButton.addEventListe
 formTransaction === null || formTransaction === void 0 ? void 0 : formTransaction.addEventListener('change', () => {
     if (+formTransaction.value !== 2) {
         dest.style.display = "block";
+    }
+});
+formTransaction === null || formTransaction === void 0 ? void 0 : formTransaction.addEventListener('change', () => {
+    if (+formTransaction.value === 7) {
+        annuler.style.display = "block";
+        dest.style.display = "none";
     }
 });
 formFournisseur === null || formFournisseur === void 0 ? void 0 : formFournisseur.addEventListener('change', () => {

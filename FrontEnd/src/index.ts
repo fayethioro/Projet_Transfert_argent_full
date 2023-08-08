@@ -11,6 +11,7 @@ import {
     dest,
     optionTransfertImmediat,
     transactionForm,
+    annuler,
   } from './dom.js';
 
 import {
@@ -49,6 +50,15 @@ prevButton?.addEventListener('click', () => {
         dest.style.display = "block";
      }
   });
+
+  formTransaction?.addEventListener('change' ,()=>{
+    if(+formTransaction.value === 7)
+    {
+       annuler.style.display = "block";
+       dest.style.display = "none";
+
+    }
+ });
 
   formFournisseur?.addEventListener('change', () => {
 

@@ -23,16 +23,25 @@ body {
 
 }
 .modal_transaction{
-    height: 86%;
-    background: rgba(240, 248, 255, 0.685);
-    width: 36%;
-    padding: 5px 5px;
+    height: 100%;
+    background: rgba(12, 12, 12, 0.358);
+    width: 100%;
+    /* padding: 5px 5px; */
     box-shadow: 0 4px 10px rgba(0,0,0,0.16), 0 4px 10px rgba(0,0,0,0.23); 
     position: absolute;
-    left: 59%;
+    /* left: 57%; */
+    top: 0;
     display: none;
 
 } 
+
+.transaction_modal{
+    background: aliceblue;
+    height: auto;
+    width: 80%;
+    margin: auto;
+    margin-top: 10px;
+}
 .ferme{
     position: absolute;
     top: 0;
@@ -181,11 +190,16 @@ span
     font-weight: bold;
     animation: anim 5s linear infinite ;
 }
-.dest{
+.dest, .retrait{
     display: none;
 }
 
-option.hidden {
+.annuler:hover, td:hover {
+    color: #2196F3;
+    cursor: pointer;
+}
+
+option.hidden, option.cache {
     display: none;
   }
 

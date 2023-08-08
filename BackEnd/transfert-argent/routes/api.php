@@ -35,9 +35,11 @@ Route::post('/comptes/restaure/{numeroCompte}' , [CompteController::class , "res
 
 
 Route::post('/transactions' , [TransactionController::class , "traiterTransfertArgent"]);
+// Route::post('/transactions/retraitCode' , [TransactionController::class , "verifierRetraitAvecCode"]);
 Route::get('/transactions' , [TransactionController::class , "afficheTransaction"]);
 Route::get('/transactions/client/{numeroClient}' , [TransactionController::class , "listeTransactionClient"]);
-// Route::get('/transactions/{numeroClient}/trie/{triPar}' , [TransactionController::class , "listeTransactionClientParTrie"]);
+Route::get('/transactions/client/{numeroClient}/trie/{critere}' , [TransactionController::class , "listeTransactionClientParTrie"]);
+Route::get('/transactions/annuler/{numeroClient}' , [TransactionController::class , "annulerDerniereTransaction"]);
 
 Route::get('/clients/nomComplet/{numero}' , [TransactionController::class , "afficheNomComplet"]);
 Route::get('/clients/fournisseur/{numero}' , [TransactionController::class , "nomFournisseur"]);

@@ -57,6 +57,7 @@
                                                      <div id="error-message"></div>
                                                 </div>
                                             </div>
+                                        </div>
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -80,9 +81,10 @@
                                                         <option  value="3">TRANSFERT</option>
                                                         <option  value="4">TRANSFERT AVEC CODE</option>
                                                         <option  value="5" class="hidden">TRANSFERT IMMEDIAT</option>
+                                                        <option  value="7" >RETRAIT AVEC CODE</option>rr"u
                                                     </select>
                                                 </div>
-                                            </div>
+                                            </div>  
                                             <br>
                                         </div>
                                        <div class="dest">
@@ -104,6 +106,19 @@
                                             </div>
                                         </div>
                                        </div>
+                                       <div class="retrait">
+                                        <div class="mb-2"><span class="p-1">retrait avec code</span><br></div>
+                                        <hr>
+                                        <div class="row ">
+                                            
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label for="code_retrait">Code de retrait</label>
+                                                    <input class="code_retrait" type="text"  >
+                                                </div>
+                                            </div>
+                                        </div>
+                                       </div>
                                             <div class="col-md-12 d-flex justify-content-center">
                                                 <button type="submit" id="valider" class="btn btn-primary btn-lg">Valider Transaction</button>
                                             </div>
@@ -114,27 +129,44 @@
                         </div>
                     </div><!-- /.8 -->
                 </div>
-        <div class="notif">xfcgvhbj</div>
-
-                <div class="modal_transaction  text-center ">
-                    <div class="d-flex tittle">
-                    <span class="text-danger">Liste des transactions</span>
-                    </div>
-                        <div id="list_transactions">
-                            <h3  class="tittle"></h3>
-                             <div class="transaction_expedtiteur"></div>
-                             <div class="transaction_destinataire"> </div>
-                             <div class="date"></div>
-                        </div>
-                        <div class="ferme">X</div>
-                        <div class="pagination ">
-                            <button id="prevButton">Précédent</button>
-                            <button id="nextButton">Suivant</button>
-                    </div>
-                </div>
+        <div class="notif">xfcgvhbj</div>  
             </div><!-- /.row-->
             </div>
             
+            <!-- modal -->
+
+            <div class="modal_transaction  text-center ">
+                <div class="transaction_modal">
+                    <div class="d-flex tittle">
+                        <span class="text-danger">Liste des transactions</span>
+                        </div>
+                            <div >
+                                <table class="table table-bordered table-hover">
+                                    <thead>
+                                      <tr>
+                                        <th scope="col">type de transaction</th>
+                                        <th scope="col">numero expediteur</th>
+                                        <th scope="col">numero destinataire</th>
+                                        <th scope="col">montant</th>
+                                        <th scope="col">code</th>
+                                        <th scope="col">date</th>
+                                        <th scope="col">etat</th>
+                                        <th scope="col">action</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody id="list_transactions">
+                                     <!-- liste des Transaction -->
+                                    </tbody>
+                                  </table>
+                            </div>
+    
+                            <div class="ferme">X</div>
+                </div>
+                    <div class="pagination ">
+                        <button id="prevButton">Précédent</button>
+                        <button id="nextButton">Suivant</button>
+                </div>
+            </div>
         <script
             src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
         <script

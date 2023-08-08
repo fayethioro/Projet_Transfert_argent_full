@@ -17,6 +17,7 @@ class TransactionResource extends JsonResource
             'date_transaction' => $this->date_transaction,
             'numero_expediteur' => $this->numero_expediteur,
             'numero_destinataire' => $this->numero_destinataire,
+            'etat_transaction' => $this->getEtatTransaction($this->etat_transaction)
         ];
     }
 
@@ -28,6 +29,19 @@ class TransactionResource extends JsonResource
             3 => 'TRANSFERT',
             4 => 'TRANSFERT AVEC CODE',
             5 => 'TRANSFERT IMMEDIAT',
+            6 =>'TRANSFERT ANNULER',
+            7 =>'RETRAIT AVEC CODE',
+        ];
+
+        return $types[$type] ?? 'Inconnu';
+    }
+
+    private function getEtatTransaction($type)
+    {
+        $types = [
+            1 => 'En cours',
+            2 => 'retirer',
+            3 => 'annuler',
         ];
 
         return $types[$type] ?? 'Inconnu';

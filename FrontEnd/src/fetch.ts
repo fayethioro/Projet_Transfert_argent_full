@@ -17,7 +17,7 @@ export async function getFournisseur(numero: string): Promise<string> {
 
 export async function getTransactions(): Promise<any[]> {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/transfert-api/transactions`);
+      const response = await fetch(`http://127.0.0.1:8000/transfert-api/transactions`);      
       const data = await response.json();
       return data.transaction;
     } catch (error) {
@@ -51,7 +51,7 @@ export async function getTransactions(): Promise<any[]> {
       return [];
     }
   }
-  
+
   export async function getComptes(): Promise<any[]> {
     try {
       const response = await fetch(`http://127.0.0.1:8000/transfert-api/comptes`);
@@ -101,7 +101,35 @@ export async function getTransactions(): Promise<any[]> {
       throw error; 
     }
   }
- 
+
+
+ export async function getTrieClients(numero: string, critere: string): Promise<any[]> {
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/transfert-api/transactions/client/${numero}/trie/${critere}`);
+    console.log(response);
+    
+    const data = await response.json();
+    return data.transactions;
+  } catch (error) {
+    console.error("Une erreur s'est produite lors de la récupération des clients :", error);
+    return [];
+  }
+}
+
+export async function getAnnulerTransaction(numero: string): Promise<{ error: string , message?:string }> {
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/transfert-api/transactions/annuler/${numero}`);
+    console.log(response);
+    
+    const data = await response.json();
+    console.log(data);
+    
+    return data;
+  } catch (error) {
+    console.error("Une erreur s'est produite :", error);
+    return { error: "Une erreur s'est produite lors de la récupération des transactions annulables." };
+  }
+}
 
  
 
