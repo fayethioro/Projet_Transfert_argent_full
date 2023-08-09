@@ -299,7 +299,8 @@ class TransactionController extends Controller
     private function traiterTransfertAvecCode($typeTransfert, $numeroExpediteur, $numeroDestinataire, $montant)
     {
         $expediteurCompte = Compte::where('numero_client', $numeroExpediteur)->first();
-        if ($this->clientPossedeCompte($numeroExpediteur) && $this->estClient($numeroDestinataire)) {
+        if ($this->clientPossedeCompte($numeroExpediteur) && $this->estClient($numeroDestinataire)
+         && $expediteurCompte->fournisseur === "OM") {
             $transactionData = [
                 'type_transaction' => $typeTransfert,
                 'montant' => $montant,
@@ -324,7 +325,7 @@ class TransactionController extends Controller
             }
             return $result;
         }
-        return ["fournisseurError" => "L'expediteur doit posséder un compte et le le numero du destinataire doit etre valide"];
+        return ["fournisseurError" => "L'expediteur doit posséder un compte Orange money et le le numero du destinataire doit etre valide"];
     }
 
 
@@ -333,7 +334,8 @@ class TransactionController extends Controller
         $destinataireCompte = Compte::where('numero_client', $numeroDestinataire)->first();
         $expediteurCompte = Compte::where('numero_client', $numeroExpediteur)->first();
 
-        if ($this->clientPossedeCompte($numeroExpediteur) && $this->clientPossedeCompte($numeroDestinataire)) {
+        if ($this->clientPossedeCompte($numeroExpediteur) && $this->clientPossedeCompte($numeroDestinataire)
+        && $destinataireCompte->fournisseur === "CB") {
             if ($destinataireCompte->fournisseur === $expediteurCompte->fournisseur) {
                 $transactionData = [
                     'type_transaction' => $typeTransfert,
@@ -363,7 +365,7 @@ class TransactionController extends Controller
             }
             return ["fournisseurError" => "Les transferts se font qu'entre compte de même fournisseur (Par exemple: CB vers CB)."];
         }
-        return "Les deux clients doivent posséder un compte.";
+        return ["message" => "on ne peut faire de transfert immediat que avec comptes bancaire "];
     }
 
     public function afficheTransaction()
@@ -518,5 +520,33 @@ public function verifierRetraitAvecCode($typeTransfert , $codeSaisi , $numeroExp
            "transaction" => $transaction
             ];
 }
+
+
+public function listeTransactionClientParFiltre($numeroClient, $critere, $valeurFiltre)
+{
+    $transactions = Transaction::where("numero_expediteur", $numeroClient)
+                                ->orWhere("numero_destinataire", $numeroClient)
+                                ->get();
+
+    $transactionsFiltrees = $transactions->filter(function ($transaction) use ($critere, $valeurFiltre) {
+        switch ($critere) {
+            case 'date_transaction':
+                return $transaction->date_transaction == $valeurFiltre;
+            case 'numero_destinataire':
+                return $transaction->numero_destinataire == $valeurFiltre;
+            case 'montant':
+                return $transaction->montant == $valeurFiltre;
+            default:
+                return true; 
+        }
+    });
+
+    return [
+        "statutCode" => Response::HTTP_OK,
+        "message" => "Liste des transactions d'un client",
+        "transactions" => TransactionResource::collection($transactionsFiltrees)
+    ];
+}
+
 
 }

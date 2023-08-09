@@ -90,7 +90,6 @@ export function ajouterTransaction(event) {
         const typeTransfert = +formTransaction.value;
         let numeroDestinataire = formDestCompte.value;
         const codeSaisie = formCodeRetrait.value;
-        console.log(codeSaisie);
         if (numeroDestinataire.length != 0) {
             numeroDestinataire = formDestCompte.value;
         }
@@ -147,6 +146,9 @@ export function ajouterTransaction(event) {
             }
             else if (data.retraitError) {
                 nomCompletErreur.textContent = data.retraitError;
+            }
+            else if (data.message) {
+                nomCompletErreur.textContent = data.message;
             }
             else {
                 errorMessageElement.style.display = "none";

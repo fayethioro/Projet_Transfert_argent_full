@@ -38,7 +38,8 @@ Route::post('/transactions' , [TransactionController::class , "traiterTransfertA
 // Route::post('/transactions/retraitCode' , [TransactionController::class , "verifierRetraitAvecCode"]);
 Route::get('/transactions' , [TransactionController::class , "afficheTransaction"]);
 Route::get('/transactions/client/{numeroClient}' , [TransactionController::class , "listeTransactionClient"]);
-Route::get('/transactions/client/{numeroClient}/trie/{critere}' , [TransactionController::class , "listeTransactionClientParTrie"]);
+Route::get('/transactions/client/{numeroClient}/trie/{critere}' , [TransactionController::class , "listeTransactionClientParFiltre"]);
+Route::get('/transactions/client/{numeroClient}/critre/{critere}/filtre/{valeur}' , [TransactionController::class , "listeTransactionClientParTrie"]);
 Route::get('/transactions/annuler/{numeroClient}' , [TransactionController::class , "annulerDerniereTransaction"]);
 
 Route::get('/clients/nomComplet/{numero}' , [TransactionController::class , "afficheNomComplet"]);

@@ -30,9 +30,9 @@ export const dest = document.querySelector('.dest') as HTMLElement;
 export const optionTransfertImmediat = document.querySelector('.hidden') as HTMLElement
 export const optionRetraitCode = document.querySelector('.cache') as HTMLElement
 
-export const transactionForm = document.getElementById('transactionForm');
+export const transactionForm = document.getElementById('transactionForm') as HTMLElement;
 export const errorMessageElement = document.getElementById('error-message') as HTMLElement;
-
+export const validerForm = document.getElementById('valider') as HTMLButtonElement;
 
 export const prenomClient = document.getElementById('prenom') as HTMLInputElement;
 export const nomClient = document.getElementById('nom') as HTMLInputElement;

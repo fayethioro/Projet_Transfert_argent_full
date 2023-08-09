@@ -24,6 +24,7 @@ export const optionTransfertImmediat = document.querySelector('.hidden');
 export const optionRetraitCode = document.querySelector('.cache');
 export const transactionForm = document.getElementById('transactionForm');
 export const errorMessageElement = document.getElementById('error-message');
+export const validerForm = document.getElementById('valider');
 export const prenomClient = document.getElementById('prenom');
 export const nomClient = document.getElementById('nom');
 export const emailClient = document.getElementById('email');

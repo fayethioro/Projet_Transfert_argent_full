@@ -1,4 +1,4 @@
-import { info, modalTransaction, modalFerme, formExpedCompte, formFournisseur, formDestCompte, formTransaction, prevButton, nextButton, dest, optionTransfertImmediat, transactionForm, annuler, } from './dom.js';
+import { info, modalTransaction, modalFerme, formExpedCompte, formFournisseur, formDestCompte, formTransaction, prevButton, nextButton, dest, transactionForm, annuler, validerForm, } from './dom.js';
 import { gererNomExpediteur, gererNomDestinataire, ajouterTransaction, afficherTransactions, } from './fonction.js';
 let pageCourant = 1;
 formExpedCompte === null || formExpedCompte === void 0 ? void 0 : formExpedCompte.addEventListener('input', gererNomExpediteur);
@@ -30,12 +30,33 @@ formTransaction === null || formTransaction === void 0 ? void 0 : formTransactio
         dest.style.display = "none";
     }
 });
-formFournisseur === null || formFournisseur === void 0 ? void 0 : formFournisseur.addEventListener('change', () => {
-    const selectedFournisseur = formFournisseur.value;
-    if (selectedFournisseur === 'CB') {
-        optionTransfertImmediat.style.display = 'block';
-    }
-    else {
-        optionTransfertImmediat.style.display = 'none';
-    }
+if (formFournisseur.value === "") {
+    formTransaction.disabled = true;
+    validerForm.disabled = true;
+}
+formFournisseur === null || formFournisseur === void 0 ? void 0 : formFournisseur.addEventListener('change', (event) => {
+    formTransaction.disabled = false;
+    validerForm.disabled = false;
+    const selectedFournisseur = event.target.value;
+    updateTransactionOptions(selectedFournisseur);
 });
+const transactionsMap = {
+    'OM': ['1', '2', '3', '4', '7'],
+    'WV': ['1', '2', '3'],
+    'WR': ['1', '7'],
+    'CB': ['1', '2', '3', '5']
+};
+function updateTransactionOptions(selectedFournisseur) {
+    const transactionOptions = transactionsMap[selectedFournisseur] || [];
+    for (let i = 0; i < formTransaction.options.length; i++) {
+        const option = formTransaction.options[i];
+        option.hidden = true;
+    }
+    transactionOptions.forEach(optionValue => {
+        const option = formTransaction.querySelector(`option[value="${optionValue}"]`);
+        if (option) {
+            option.hidden = false;
+        }
+    });
+    formTransaction.value = '';
+}

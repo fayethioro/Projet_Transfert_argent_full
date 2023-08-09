@@ -12,6 +12,7 @@ import {
     optionTransfertImmediat,
     transactionForm,
     annuler,
+    validerForm,
   } from './dom.js';
 
 import {
@@ -59,18 +60,42 @@ prevButton?.addEventListener('click', () => {
 
     }
  });
+ if (formFournisseur.value === "") {
+  formTransaction.disabled = true;
+  validerForm.disabled = true;
+ }
+  formFournisseur?.addEventListener('change', (event)  => {
+       formTransaction.disabled = false;
+       validerForm.disabled = false;
+      const selectedFournisseur = (event.target as HTMLSelectElement).value;
+      updateTransactionOptions(selectedFournisseur);
+       
+      
+  });
 
-  formFournisseur?.addEventListener('change', () => {
+const transactionsMap: Record<string, string[]> = {
+  'OM': ['1', '2', '3', '4', '7'],
+  'WV': ['1', '2', '3'],
+  'WR': ['1', '7'],
+  'CB': ['1', '2', '3', '5']
+};
 
-    const selectedFournisseur = formFournisseur.value;
+function updateTransactionOptions(selectedFournisseur: string) {
+  const transactionOptions = transactionsMap[selectedFournisseur] || [];
 
-    if (selectedFournisseur === 'CB') {
-      optionTransfertImmediat.style.display = 'block';
-    }
-     else {
-      optionTransfertImmediat.style.display = 'none'; 
+  for (let i = 0; i < formTransaction.options.length; i++) {
+    const option = formTransaction.options[i] ;
+    option.hidden = true;
+  }
+  transactionOptions.forEach(optionValue => {
+    const option = formTransaction.querySelector(`option[value="${optionValue}"]`) as HTMLOptionElement;
+    if (option) {
+      option.hidden = false;
     }
   });
+  formTransaction.value = '';
+}
+
 
 
 
